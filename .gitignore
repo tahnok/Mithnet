@@ -25,3 +25,6 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+admin.py
+reddit.py
