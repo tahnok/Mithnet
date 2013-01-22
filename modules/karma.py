@@ -10,10 +10,12 @@ KARMA_FILE = "karma.txt"
 
 def setup(self):
     try:
-        with open(KARMA_FILE, "r") as f:
-            self.karmas = pickle.load(f)
+        f = open(KARMA_FILE, "r")
+        self.karmas = pickle.load(f)
     except IOError:
         self.karmas = {}
+    finally:
+        f.close()
 
 def karma_me(phenny, input):
     target = input.group(1).lower()
@@ -38,8 +40,13 @@ def karma_me(phenny, input):
         else:
             phenny.karmas[target] += karma
         phenny.say(target+"'s karma is now "+str(phenny.karmas[target]))
-        with open(KARMA_FILE, "w") as f:
+        try:
+            f = open(KARMA_FILE, "w")
             pickle.dump(phenny.karmas, f)
+        except IOError:
+            pass
+        finally:
+            f.close()
     else:
         phenny.say("I'm sorry, " + input.nick + ". I'm afraid I do not know who that is.")
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
