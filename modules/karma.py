@@ -6,11 +6,13 @@ karma.py - Phenny karma Module
 import re
 import pickle
 
-KARMA_FILE = "karma.txt"
+def filename(self): 
+   name = self.nick + '-' + self.config.host + '.karma.db'
+   return os.path.join(os.path.expanduser('~/.phenny'), name)
 
 def setup(self):
     try:
-        f = open(KARMA_FILE, "r")
+        f = open(filename(self), "r")
         self.karmas = pickle.load(f)
     except IOError:
         self.karmas = {}
@@ -41,7 +43,7 @@ def karma_me(phenny, input):
             phenny.karmas[target] += karma
         phenny.say(target+"'s karma is now "+str(phenny.karmas[target]))
         try:
-            f = open(KARMA_FILE, "w")
+            f = open(filename(phenny), "w")
             pickle.dump(phenny.karmas, f)
         except IOError:
             pass
