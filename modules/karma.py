@@ -14,10 +14,9 @@ def setup(self):
     try:
         f = open(filename(self), "r")
         self.karmas = pickle.load(f)
+        f.close()
     except IOError:
         self.karmas = {}
-    finally:
-        f.close()
 
 def karma_me(phenny, input):
     target = input.group(1).lower()
@@ -45,10 +44,9 @@ def karma_me(phenny, input):
         try:
             f = open(filename(phenny), "w")
             pickle.dump(phenny.karmas, f)
+            f.close()
         except IOError:
             pass
-        finally:
-            f.close()
     else:
         phenny.say("I'm sorry, " + input.nick + ". I'm afraid I do not know who that is.")
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
