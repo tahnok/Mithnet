@@ -4,21 +4,28 @@ karma.py - Phenny karma Module
 """
 
 import re
+import pickle
+
+KARMA_FILE = "karma.txt"
 
 def setup(self):
-    self.karmas = {}
+    try:
+        with open(KARMA_FILE, "r") as f:
+            self.karmas = pickle.load(f)
+    except IOError:
+        self.karmas = {}
 
 def karma_me(phenny, input):
     target = input.group(1).lower()
-    karma = (input.group(2) == "++")*2-1
+    karma = (input.group(2) == "++") * 2 - 1
     isself = False
     if target == input.nick.lower():
         isself = True
     if not hasattr(phenny, 'karmas'): 
         return phenny.say('error?')
     if target in phenny.alias_list:
-        target = phenny.alias_list[target]
-        if target == input.nick.lower():
+        t = phenny.alias_list[target]
+        if t == input.nick.lower():
             isself = True
     if input.nick.lower() in phenny.alias_list:
         if target == phenny.alias_list[input.nick.lower()]:
@@ -31,6 +38,8 @@ def karma_me(phenny, input):
         else:
             phenny.karmas[target] += karma
         phenny.say(target+"'s karma is now "+str(phenny.karmas[target]))
+        with open(KARMA_FILE, "w") as f:
+            pickle.dump(phenny.karmas, f)
     else:
         phenny.say("I'm sorry, " + input.nick + ". I'm afraid I do not know who that is.")
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
@@ -46,9 +55,10 @@ def get_karma(phenny, input):
         else:
             phenny.say("That entity does not exist within the karmaverse")
     elif len(phenny.karmas) > 0:
-        msg = "Best karma: "+ ', '.join([x + ": " + str(phenny.karmas[x]) for x in sorted(phenny.karmas, key=phenny.karmas.get, reverse=True)[:3]])
+        s_karm = sorted(phenny.karmas, key=phenny.karmas.get, reverse=True)
+        msg = "Best karma: "+ ', '.join([x + ": " + str(phenny.karmas[x]) for x in s_karm[:3]])
         phenny.say(msg)
-        msg = "Worst karma: "+ ', '.join([x + ": " + str(phenny.karmas[x]) for x in sorted(phenny.karmas, key=phenny.karmas.get)[:3]])
+        msg = "Worst karma: "+ ', '.join([x + ": " + str(phenny.karmas[x]) for x in s_karm[:-4:-1]])
         phenny.say(msg)
     else:
         phenny.say("You guys don't have any karma apparently.")
