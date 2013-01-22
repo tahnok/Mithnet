@@ -23,11 +23,9 @@ doc.example = '.help doc?'
 doc.priority = 'low'
 
 def commands(phenny, input): 
-   # This function only works in private message
-   if input.sender.startswith('#'): return
    names = ', '.join(sorted(phenny.doc.iterkeys()))
-   phenny.say('Commands I recognise: ' + names + '.')
-   phenny.say("For help, do .help example?' where example is the " + 
+   phenny.notice(input.nick, 'Commands I recognise: ' + names + '.')
+   phenny.notice(input.nick, "For help, do .help example?' where example is the " + 
                "name of the command you want help for.")
 commands.commands = ['commands']
 commands.priority = 'low'
