@@ -18,6 +18,14 @@ def setup(self):
     except IOError:
         self.karmas = {}
 
+def save_karma(self):
+    try:
+        f = open(filename(self), "w")
+        pickle.dump(self.karmas, f)
+        f.close()
+    except IOError:
+        pass
+
 def karma_me(phenny, input):
     target = input.group(1).lower()
     karma = (input.group(2) == "++") * 2 - 1
@@ -41,12 +49,7 @@ def karma_me(phenny, input):
         else:
             phenny.karmas[target] += karma
         phenny.say(target+"'s karma is now "+str(phenny.karmas[target]))
-        try:
-            f = open(filename(phenny), "w")
-            pickle.dump(phenny.karmas, f)
-            f.close()
-        except IOError:
-            pass
+        save_karma(phenny)
     else:
         phenny.say("I'm sorry, " + input.nick + ". I'm afraid I do not know who that is.")
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
@@ -80,5 +83,6 @@ def nuke_karma(phenny, input):
         if nick in phenny.karmas:
             del phenny.karmas[nick]
             phenny.say(input.group(2) + " has been banished from the karmaverse")
+            save_karma(phenny)
 nuke_karma.name = 'knuke'
 nuke_karma.rule = (['knuke'], r'(\S+)')
