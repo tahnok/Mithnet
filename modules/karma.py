@@ -6,6 +6,8 @@ karma.py - Phenny karma Module
 import re
 import pickle
 
+SHOW_TOP_DEFAULT = 6
+
 def filename(self): 
    name = self.nick + '-' + self.config.host + '.karma.db'
    return os.path.join(os.path.expanduser('~/.phenny'), name)
@@ -57,23 +59,32 @@ karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
 def get_karma(phenny, input):
     if not hasattr(phenny, 'karmas'): 
         return phenny.say('error?')
-    nick = input.group(2)
+    show_top = input.group(3)
+    if show_top is not None:  # want to show the top x
+        nick = None
+        show_top = int(show_top)
+    else:
+        nick = input.group(2)
+        show_top = SHOW_TOP_DEFAULT
     if nick:
         nick = nick.lower()
         if nick in phenny.karmas:
-            phenny.say(input.group(2) + " has " + str(phenny.karmas[nick]) + " karma.")
+            phenny.say(nick + " has " + str(phenny.karmas[nick]) + " karma.")
         else:
             phenny.say("That entity does not exist within the karmaverse")
     elif len(phenny.karmas) > 0:
         s_karm = sorted(phenny.karmas, key=phenny.karmas.get, reverse=True)
-        msg = "Best karma: "+ ', '.join([x + ": " + str(phenny.karmas[x]) for x in s_karm[:3]])
-        phenny.say(msg)
-        msg = "Worst karma: "+ ', '.join([x + ": " + str(phenny.karmas[x]) for x in s_karm[:-4:-1]])
-        phenny.say(msg)
+        msg = ', '.join([x + ": " + str(phenny.karmas[x]) for x in s_karm[:show_top]])
+        if msg:
+            phenny.say("Best karma: " + msg)
+        worst_karmas = ', '.join([x + ": " + str(phenny.karmas[x])
+                for x in s_karm[:-show_top-1:-1] if phenny.karmas[x] < 0])
+        if worst_karmas:
+            phenny.say("Worst karma: "+ msg)
     else:
         phenny.say("You guys don't have any karma apparently.")
 get_karma.name = 'karma'
-get_karma.rule = (['karma'], r'(\S+)')
+get_karma.rule = (['karma'], r'(\S+|top (\d))$')
 
 def nuke_karma(phenny, input):
     if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')
