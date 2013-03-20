@@ -3,7 +3,7 @@
 karma.py - Phenny karma Module
 """
 
-import re
+import os, re
 import pickle
 
 def filename(self): 
@@ -48,7 +48,7 @@ def karma_me(phenny, input):
         except IOError:
             pass
     else:
-        phenny.say("I'm sorry, " + input.nick + ". I'm afraid I do not know who that is.")
+        phenny.notice(input.nick, "I'm sorry. I'm afraid I do not know who that is.")
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
 
 def get_karma(phenny, input):
