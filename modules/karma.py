@@ -84,7 +84,7 @@ def get_karma(phenny, input):
     else:
         phenny.say("You guys don't have any karma apparently.")
 get_karma.name = 'karma'
-get_karma.rule = (['karma'], r'(\S+|top )(\d)?')
+get_karma.rule = (['karma'], r'(\S+|top (\d))')
 
 def nuke_karma(phenny, input):
     if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')
