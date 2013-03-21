@@ -80,7 +80,7 @@ def get_karma(phenny, input):
         worst_karmas = ', '.join([x + ": " + str(phenny.karmas[x])
                 for x in s_karm[:-show_top-1:-1] if phenny.karmas[x] < 0])
         if worst_karmas:
-            phenny.say("Worst karma: "+ msg)
+            phenny.say("Worst karma: "+ worst_karmas)
     else:
         phenny.say("You guys don't have any karma apparently.")
 get_karma.name = 'karma'
