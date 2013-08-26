@@ -8,9 +8,9 @@ import pickle
 
 SHOW_TOP_DEFAULT = 6
 
-def filename(self, fname): 
-   name = ''.join((self.nick, '-', self.config.host, '.', fname, '.db'))
-   return os.path.join(os.path.expanduser('~/.phenny'), name)
+def filename(self, fname):
+    name = ''.join((self.nick, '-', self.config.host, '.', fname, '.db'))
+    return os.path.join(os.path.expanduser('~/.phenny'), name)
 
 def setup(self):
     try:
@@ -19,11 +19,11 @@ def setup(self):
         f.close()
     except IOError:
         self.karmas = {}
-     try:
+    try:
         f = open(filename(self, "karma_contrib"), "r")
         self.karma_contrib = pickle.load(f)
         f.close()
-     except IOError:
+    except IOError:
         self.karma_contrib = {}
 
 def save_karma(self):
@@ -33,7 +33,7 @@ def save_karma(self):
         f.close()
     except IOError:
         pass
-     try:
+    try:
         f = open(filename(self, "karma_contrib"), "w")
         pickle.dump(self.karma_contrib, f)
         f.close()
@@ -47,7 +47,7 @@ def karma_me(phenny, input):
     sender = input.nick.lower()
     if target == sender:
         isself = True
-    if not hasattr(phenny, 'karmas'): 
+    if not hasattr(phenny, 'karmas'):
         return phenny.say('error?')
     if target in phenny.alias_list:
         t = phenny.alias_list[target]
@@ -74,7 +74,7 @@ def karma_me(phenny, input):
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
 
 def get_karma(phenny, input):
-    if not hasattr(phenny, 'karmas'): 
+    if not hasattr(phenny, 'karmas'):
         return phenny.say('error?')
     show_top = input.group(3)
     contrib = input.group(4)
