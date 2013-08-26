@@ -66,7 +66,7 @@ def karma_me(phenny, input):
             phenny.karmas[target] += karma
         if sender not in phenny.karma_contrib:
             phenny.karma_contrib[sender] = [0, 0]  # +, -
-        phenny.karma_contrib[sender][karma == -1]
+        phenny.karma_contrib[sender][karma == -1] += 1
         phenny.say(target+"'s karma is now "+str(phenny.karmas[target]))
         save_karma(phenny)
     else:
