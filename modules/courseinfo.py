@@ -29,7 +29,7 @@ def courseinfo(phenny, input):
     search = mat.groups()
     for search in (
             zip(("COMP", "MATH"), (search[1], ) * 2)
-            if search[0] is None
+            if search[0] == ""
             else [search]):  # if department not provided assume COMP, then MATH
         url = web_prefix + '+'.join(search)
         bytes = web.get(url)
