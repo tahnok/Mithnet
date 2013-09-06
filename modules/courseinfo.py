@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import re
 import web
 
@@ -40,7 +41,7 @@ def courseinfo(phenny, input):
     credits = get_data("course_credits", bytes)
     number = get_data("course_number", bytes)  # maybe wasteful, but who knows maybe there's a redirect
     desc = get_data("course_description", bytes)
-    phenny.reply(number + ": \x02" + title + "\x02 (" + credits + ")")
-    phenny.reply(desc)
-    phenny.reply(url)
+    phenny.say(number + ": \x02" + title + "\x02 (" + credits + ")")
+    phenny.say(desc)
+    phenny.say(url)
 courseinfo.commands = ["courseinfo"]
