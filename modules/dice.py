@@ -37,24 +37,27 @@ def dice(phenny, input):
     terms = 0
     if rest.count("+") + rest.count("-") >= TERMS_CUTOFF:
         return
-    while rest:
-        terms += 1
-        mult, how_many, sides, rest = re.match(r"([\+\-]?)(\d*)d(\d+)(.*)", rest).groups()
-        mult = (mult == "-") * -2 + 1
-        if not how_many:
-            how_many = 1
-        how_many = int(how_many)
-        sides = int(sides)
-        if results is False or how_many > DICE_CUTOFF:  # shortcut
-            results = False
-            total += probabilistic_sum(how_many, sides)
-        else:
-            results = [random.randint(1, sides) for _ in xrange(how_many)]
-            total += sum(results) * mult
-    if terms == 1 and results:
-        if len(results) <= RESULTS_CUTOFF:
-            phenny.say(', '.join(map(str, results)) + ". Total: " + str(total))
-            return
-    phenny.say(str(total))
+    try:
+        while rest:
+            terms += 1
+            mult, how_many, sides, rest = re.match(r"([\+\-]?)(\d*)d(\d+)(.*)", rest).groups()
+            mult = (mult == "-") * -2 + 1
+            if not how_many:
+                how_many = 1
+            how_many = int(how_many)
+            sides = int(sides)
+            if results is False or how_many > DICE_CUTOFF:  # shortcut
+                results = False
+                total += probabilistic_sum(how_many, sides)
+            else:
+                results = [random.randint(1, sides) for _ in xrange(how_many)]
+                total += sum(results) * mult
+        if terms == 1 and results:
+            if 1 < len(results) <= RESULTS_CUTOFF:
+                phenny.say(', '.join(map(str, results)) + ". Total: " + str(total))
+                return
+        phenny.say(str(total))
+    except OverflowError:
+        phenny.reply("Calm down bro.")
 dice.name = "dice"
 dice.rule = r'^(?:[1-9]\d*)?d[1-9]\d*(?:\s?[\+\-]\s?(?:[1-9]\d*)?d[1-9]\d*)*$'
