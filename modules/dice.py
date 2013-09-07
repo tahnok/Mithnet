@@ -38,7 +38,7 @@ def dice(phenny, input):
         return
     while rest:
         terms += 1
-        mult, how_many, sides, rest = re.match(r"([\+\-]?)(\d*)d(\d+)(.*)", rest)
+        mult, how_many, sides, rest = re.match(r"([\+\-]?)(\d*)d(\d+)(.*)", rest).groups()
         mult = (mult == "-") * -2 + 1
         if not how_many:
             how_many = 1
