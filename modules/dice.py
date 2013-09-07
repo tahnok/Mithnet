@@ -4,6 +4,7 @@ import re
 
 TERMS_CUTOFF = 10
 DICE_CUTOFF = 100000
+RESULTS_CUTOFF = 10
 
 
 def quadratic(a, b, c):
@@ -48,11 +49,12 @@ def dice(phenny, input):
             results = False
             total += probabilistic_sum(how_many, sides)
         else:
-            results = [random.randint(1, sides + 1) for _ in xrange(how_many)]
+            results = [random.randint(1, sides) for _ in xrange(how_many)]
             total += sum(results) * mult
     if terms == 1 and results:
-        phenny.reply(', '.join(map(str, results)) + ". Total: " + str(total))
-    else:
-        phenny.reply(str(total))
+        if len(results) <= RESULTS_CUTOFF:
+            phenny.say(', '.join(map(str, results)) + ". Total: " + str(total))
+            return
+    phenny.say(str(total))
 dice.name = "dice"
-dice.rule = r'^\d*d\d+(?:\s?[\+\-]\s?\d*d\d+)*$'
+dice.rule = r'^(?:[1-9]\d*)?d[1-9]\d*(?:\s?[\+\-]\s?(?:[1-9]\d*)?d[1-9]\d*)*$'
