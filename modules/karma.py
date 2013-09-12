@@ -124,3 +124,6 @@ def nuke_karma(phenny, input):
             save_karma(phenny)
 nuke_karma.name = 'knuke'
 nuke_karma.rule = r'^\.(knuke) (\S+)$'
+
+if __name__ == '__main__': 
+   print __doc__.strip()
