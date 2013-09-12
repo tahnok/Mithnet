@@ -20,6 +20,7 @@ def get_data(tag_class, bytes, start=0):
 
 
 def courseinfo(phenny, input):
+    """ Get information about a course at McGill by course number. If no department is specified, checks the COMP, then MATH departments. """
     query = input.group(2)
     if not query:
         return phenny.reply(usage)
@@ -45,3 +46,4 @@ def courseinfo(phenny, input):
     phenny.say(desc)
     phenny.say(url)
 courseinfo.commands = ["courseinfo"]
+courseinfo.example = usage.partition(" ")[2]
