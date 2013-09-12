@@ -11,7 +11,7 @@ def doc(phenny, input):
    """Shows a command's documentation, and possibly an example."""
    name = input.group(2)
    if not name:
-      return phenny.reply('.doc what?')
+      return phenny.reply('.%s what?' % input.group(1))
    name = name.lower()
 
    if phenny.doc.has_key(name): 

@@ -74,8 +74,7 @@ def karma_me(phenny, input):
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
 
 def get_karma(phenny, input):
-    """ Fetch the karma of the given user. If no user is given, or with optional
-    parameters 'top \x09x\x09', gives top and bottom \x09x\x09 leaders in karma. """
+    """Fetch the karma of the given user. If no user is given, or with optional parameters 'top \x09x\x09', gives top and bottom \x09x\x09 leaders in karma."""
     if not hasattr(phenny, 'karmas'):
         return phenny.say('error?')
     show_top = input.group(3)

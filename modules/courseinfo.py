@@ -8,7 +8,7 @@ lookup = re.compile("^((?:[a-z]{4})?)\s?(\d{3})$", re.I)
 
 
 def get_data(tag_class, bytes, start=0):
-    """ Why don't they do this by id :( """
+    """Why don't they do this by id :("""
     look = '"'.join(("class=", tag_class, ""))
     class_index = bytes.find(look, start)
     if class_index == -1:
@@ -20,7 +20,7 @@ def get_data(tag_class, bytes, start=0):
 
 
 def courseinfo(phenny, input):
-    """ Get information about a course at McGill by course number. If no department is specified, checks the COMP, then MATH departments. """
+    """Get information about a course at McGill by course number. If no department is specified, checks the COMP, then MATH departments."""
     query = input.group(2)
     if not query:
         return phenny.reply(usage)

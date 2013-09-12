@@ -31,7 +31,7 @@ def probabilistic_sum(number_of_dice, sides):
     return int(round(random.uniform(min_x, max_x)))
 
 def dice(phenny, input):
-    """ Gets the sum of rolled dice in the format [k]d[n]. Rolls k dice with n sides. """
+    """Gets the sum of rolled dice in the format [k]d[n]. Rolls k dice with n sides."""
     rest = input.group(0).replace(" ", "")  # remove all whitespace
     results = []
     total = 0
