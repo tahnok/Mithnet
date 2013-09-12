@@ -63,3 +63,7 @@ def dice(phenny, input):
 dice.name = "dice"
 dice.rule = r'^(?:[1-9]\d*)?d[1-9]\d*(?:\s?[\+\-]\s?(?:[1-9]\d*)?d[1-9]\d*)*$'
 dice.example = "5d6 - 2d4"
+
+if __name__ == '__main__': 
+   print __doc__.strip()
+
