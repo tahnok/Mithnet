@@ -87,6 +87,42 @@ py.lastused = 0.0
 py.throttle = 2
 py.warned = False
 
+
+def irb(phenny, input):
+    query = input.group(2).encode('utf-8')
+    uri = 'https://eval.in/'
+    data = {"utf8": "\xce", "execute": "1", "private": "0", "lang": "ruby/mri-2.0.0",
+        "input": "", "code": query}
+    answer = web.post(uri, data)
+    _, _, answer = answer.partition("<h2>Program Output</h2>")
+    answer = answer.lstrip()
+    answer = answer[5: answer.index("</pre>")]
+    answer = web.decode(answer)
+    if input.nick not in phenny.ident_admin:
+        if len(answer) > 150: return phenny.notice(input.nick,input.nick + ": Fuck off. You're not funny, you're not cool. Nobody likes you.")
+    if answer:
+        if input.nick in phenny.ident_admin:
+            phenny.say(answer)
+        elif (time.time() - (irb.lastused + irb.throttle)) > 30:
+            irb.throttle = 2
+            irb.lastused = time.time()
+            irb.warned = False
+            phenny.say(answer)
+        elif (time.time() - irb.lastused) > irb.throttle:
+            irb.throttle = 2*irb.throttle
+            irb.lastused = time.time()
+            irb.warned = False
+            phenny.say(answer)
+        elif not irb.warned:
+            irb.warned = True
+            phenny.say(".irb has been throttled: limit 1 use per " + str(irb.throttle) + " seconds")
+        else: return
+    else: phenny.reply('Sorry, no result.')
+irb.commands = ['irb']
+irb.lastused = 0.0
+irb.throttle = 2
+irb.warned = False
+
 def wa(phenny, input): 
    """Wolfram|Alpha."""
    if not input.group(2):
