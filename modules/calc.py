@@ -93,11 +93,14 @@ def irb(phenny, input):
     uri = 'https://eval.in/'
     data = {"utf8": "\xce", "execute": "1", "private": "0", "lang": "ruby/mri-2.0.0",
         "input": "", "code": query}
-    answer = web.post(uri, data)
-    _, _, answer = answer.partition("<h2>Program Output</h2>")
-    answer = answer.lstrip()
-    answer = answer[5: answer.index("</pre>")]
-    answer = web.decode(answer)
+    raw_answer = web.post(uri, data)
+    try:
+      _, _, answer = raw_answer.partition("<h2>Program Output</h2>")
+      answer = answer.lstrip()
+      answer = answer[5: answer.index("</pre>")]
+      answer = web.decode(answer)
+    except ValueError e:
+      phenny.notice(input.nick, "ValueError " + e + ": " + answer[:100])
     if input.nick not in phenny.ident_admin:
         if len(answer) > 150: return phenny.notice(input.nick,input.nick + ": Fuck off. You're not funny, you're not cool. Nobody likes you.")
     if answer:
