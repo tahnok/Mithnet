@@ -97,7 +97,7 @@ def irb(phenny, input):
     _, _, answer = answer.partition("<h2>Program Output</h2>")
     answer = answer.lstrip()
     answer = answer[5: answer.index("</pre>")]
-    answer = web.decode(answer)
+    answer = web.decode(answer)
     if input.nick not in phenny.ident_admin:
         if len(answer) > 150: return phenny.notice(input.nick,input.nick + ": Fuck off. You're not funny, you're not cool. Nobody likes you.")
     if answer:
