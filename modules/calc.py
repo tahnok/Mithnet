@@ -99,7 +99,7 @@ def irb(phenny, input):
       answer = answer.lstrip()
       answer = answer[5: answer.index("</pre>")]
       answer = web.decode(answer)
-    except ValueError e:
+    except ValueError as e:
       phenny.notice(input.nick, "ValueError " + e + ": " + answer[:100])
     if input.nick not in phenny.ident_admin:
         if len(answer) > 150: return phenny.notice(input.nick,input.nick + ": Fuck off. You're not funny, you're not cool. Nobody likes you.")
