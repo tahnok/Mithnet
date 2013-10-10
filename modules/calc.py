@@ -91,7 +91,7 @@ py.warned = False
 def irb(phenny, input):
     query = input.group(2).encode('utf-8')
     uri = 'https://eval.in/'
-    data = {"utf8": "\xce", "execute": "1", "private": "0", "lang": "ruby/mri-2.0.0",
+    data = {"utf8": "\xce\xbb", "execute": "on", "private": "on", "lang": "ruby/mri-2.0.0",
         "input": "", "code": query}
     raw_answer = web.post(uri, data)
     try:

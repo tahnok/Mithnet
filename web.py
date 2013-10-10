@@ -5,7 +5,7 @@ Author: Sean B. Palmer, inamidst.com
 About: http://inamidst.com/phenny/
 """
 
-import re, urllib
+import re, urllib, urllib2
 from htmlentitydefs import name2codepoint
 
 class Grab(urllib.URLopener): 
@@ -19,7 +19,7 @@ urllib._urlopener = Grab()
 def get(uri): 
    if not uri.startswith('http'): 
       return
-   u = urllib.urlopen(uri)
+   u = urllib2.urlopen(uri)
    bytes = u.read()
    u.close()
    return bytes
@@ -27,7 +27,7 @@ def get(uri):
 def head(uri): 
    if not uri.startswith('http'): 
       return
-   u = urllib.urlopen(uri)
+   u = urllib2.urlopen(uri)
    info = u.info()
    u.close()
    return info
@@ -36,7 +36,7 @@ def post(uri, query):
    if not uri.startswith('http'): 
       return
    data = urllib.urlencode(query)
-   u = urllib.urlopen(uri, data)
+   u = urllib2.urlopen(uri, data)
    bytes = u.read()
    u.close()
    return bytes
