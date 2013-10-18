@@ -56,18 +56,19 @@ def karma_me(phenny, input):
     if target_nicks & sender_nicks:  # target and sender must be disjoint
         return phenny.say("I'm sorry, "+input.nick+". I'm afraid I can't do that.")
 
-    if target in phenny.seen:
-        if target not in phenny.karmas:
-            phenny.karmas[target] = karma
-        else:
-            phenny.karmas[target] += karma
-        if sender not in phenny.karma_contrib:
-            phenny.karma_contrib[sender] = [0, 0]  # +, -
-        phenny.karma_contrib[sender][karma == -1] += 1
-        phenny.say(target+"'s karma is now "+str(phenny.karmas[target]))
-        save_karma(phenny)
-    else:
-        phenny.notice(input.nick, "I'm sorry. I'm afraid I do not know who that is.")
+    for t in target_nicks:
+        if t in phenny.seen:  # i at least know who you're talking about.
+            if target not in phenny.karmas:
+                phenny.karmas[target] = karma
+            else:
+                phenny.karmas[target] += karma
+            if sender not in phenny.karma_contrib:
+                phenny.karma_contrib[sender] = [0, 0]  # +, -
+            phenny.karma_contrib[sender][karma == -1] += 1
+            phenny.say(target+"'s karma is now "+str(phenny.karmas[target]))
+            save_karma(phenny)
+            return True
+    phenny.notice(input.nick, "I'm sorry. I'm afraid I do not know who that is.")
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
 
 def get_karma(phenny, input):
