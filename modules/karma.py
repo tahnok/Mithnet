@@ -43,22 +43,19 @@ def save_karma(self):
 def karma_me(phenny, input):
     target = input.group(1).lower()
     karma = (input.group(2) == "++") * 2 - 1
-    isself = False
     sender = input.nick.lower()
-    if target == sender:
-        isself = True
     if not hasattr(phenny, 'karmas'):
         return phenny.say('error?')
+
+    target_nicks = set([target])
+    sender_nicks = set([sender])
     if target in phenny.alias_list:
-        t = phenny.alias_list[target]
-        if t == sender:
-            isself = True
+        target_nicks.add(phenny.alias_list[target])
     if sender in phenny.alias_list:
-        sender = phenny.alias_list[sender]
-        if target == sender:
-            isself = True
-    if isself:
+        sender_nicks.add(phenny.alias_list[sender])
+    if target_nicks & sender_nicks:  # target and sender must be disjoint
         return phenny.say("I'm sorry, "+input.nick+". I'm afraid I can't do that.")
+
     if target in phenny.seen:
         if target not in phenny.karmas:
             phenny.karmas[target] = karma
