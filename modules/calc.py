@@ -99,7 +99,7 @@ def irb(phenny, input):
         _, _, answer = raw_answer.partition("<h2>Program Output</h2>")
         answer = answer.lstrip()
         answer = answer[5: answer.index("</pre>")]
-        answer = web.decode(answer)
+        answer = web.decode(answer).rstrip()
         lines = answer.split("\n")
     except ValueError as e:
       phenny.notice(input.nick, "ValueError " + str(e) + ": " + answer[:100])
