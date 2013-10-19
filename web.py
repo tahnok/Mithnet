@@ -32,14 +32,19 @@ def head(uri):
    u.close()
    return info
 
-def post(uri, query): 
-   if not uri.startswith('http'): 
+def post(uri, query):
+   return post_with_url(uri, query)[0]
+
+def post_with_url(uri, query):
+   """Post, and get both the bytes and the redirected url in a tuple"""
+   if not uri.startswith('http'):
       return
    data = urllib.urlencode(query)
    u = urllib2.urlopen(uri, data)
+   furl = u.geturl()
    bytes = u.read()
    u.close()
-   return bytes
+   return (bytes, furl)
 
 r_entity = re.compile(r'&([^;\s]+);')
 
