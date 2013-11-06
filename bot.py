@@ -215,7 +215,8 @@ class Phenny(irc.Bot):
          for regexp, funcs in items: 
             for func in funcs: 
                if event != func.event: continue
-
+               if event in ("311", "312", "330", "318"):
+                  self.msg("#mcgill", "DEBUG: " + func.name)
                match = regexp.match(text)
                if match: 
                   if self.limit(origin, func): continue
