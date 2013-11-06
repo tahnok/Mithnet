@@ -90,20 +90,24 @@ py.warned = False
 
 def irb(phenny, input):
     query = input.group(2).encode('utf-8')
+    query = "p begin\n  %s\nrescue Exception\n  puts \"#{$!} (#{$!.class})\"\n  $stdout.flush\n  raise e\nend" % query
     uri = 'https://eval.in/'
-    data = {"utf8": "\xce", "execute": "1", "private": "0", "lang": "ruby/mri-2.0.0",
+    data = {"utf8": "\xce\xbb", "execute": "on", "private": "on", "lang": "ruby/mri-2.0.0",
         "input": "", "code": query}
-    raw_answer = web.post(uri, data)
+    raw_answer, furl = web.post_with_url(uri, data)
     try:
-      _, _, answer = raw_answer.partition("<h2>Program Output</h2>")
-      answer = answer.lstrip()
-      answer = answer[5: answer.index("</pre>")]
-      answer = web.decode(answer)
+        _, _, answer = raw_answer.partition("<h2>Program Output</h2>")
+        answer = answer.lstrip()
+        answer = answer[5: answer.index("</pre>")]
+        answer = web.decode(answer).rstrip()
+        lines = answer.split("\n")
     except ValueError as e:
       phenny.notice(input.nick, "ValueError " + str(e) + ": " + answer[:100])
     if input.nick not in phenny.ident_admin:
         if len(answer) > 150: return phenny.notice(input.nick,input.nick + ": Fuck off. You're not funny, you're not cool. Nobody likes you.")
     if answer:
+        sep = " ... " if len(lines) > 1 else " "
+        answer = ''.join((lines[0], sep, "(", furl, ")"))
         if input.nick in phenny.ident_admin:
             phenny.say(answer)
         elif (time.time() - (irb.lastused + irb.throttle)) > 30:

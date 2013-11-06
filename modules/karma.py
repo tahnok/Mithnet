@@ -43,34 +43,32 @@ def save_karma(self):
 def karma_me(phenny, input):
     target = input.group(1).lower()
     karma = (input.group(2) == "++") * 2 - 1
-    isself = False
     sender = input.nick.lower()
-    if target == sender:
-        isself = True
     if not hasattr(phenny, 'karmas'):
         return phenny.say('error?')
+
+    target_nicks = set([target])
+    sender_nicks = set([sender])
     if target in phenny.alias_list:
-        t = phenny.alias_list[target]
-        if t == sender:
-            isself = True
+        target_nicks.add(phenny.alias_list[target])
     if sender in phenny.alias_list:
-        sender = phenny.alias_list[sender]
-        if target == sender:
-            isself = True
-    if isself:
+        sender_nicks.add(phenny.alias_list[sender])
+    if target_nicks & sender_nicks:  # target and sender must be disjoint
         return phenny.say("I'm sorry, "+input.nick+". I'm afraid I can't do that.")
-    if target in phenny.seen:
-        if target not in phenny.karmas:
-            phenny.karmas[target] = karma
-        else:
-            phenny.karmas[target] += karma
-        if sender not in phenny.karma_contrib:
-            phenny.karma_contrib[sender] = [0, 0]  # +, -
-        phenny.karma_contrib[sender][karma == -1] += 1
-        phenny.say(target+"'s karma is now "+str(phenny.karmas[target]))
-        save_karma(phenny)
-    else:
-        phenny.notice(input.nick, "I'm sorry. I'm afraid I do not know who that is.")
+
+    for t in target_nicks:
+        if t in phenny.seen:  # i at least know who you're talking about.
+            if target not in phenny.karmas:
+                phenny.karmas[target] = karma
+            else:
+                phenny.karmas[target] += karma
+            if sender not in phenny.karma_contrib:
+                phenny.karma_contrib[sender] = [0, 0]  # +, -
+            phenny.karma_contrib[sender][karma == -1] += 1
+            phenny.say(target+"'s karma is now "+str(phenny.karmas[target]))
+            save_karma(phenny)
+            return True
+    phenny.notice(input.nick, "I'm sorry. I'm afraid I do not know who that is.")
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
 
 def get_karma(phenny, input):
@@ -111,7 +109,7 @@ def get_karma(phenny, input):
     else:
         phenny.say("You guys don't have any karma apparently.")
 get_karma.name = 'karma'
-get_karma.rule = r'^\.(karma)(?: (top (\d)|contrib (\S+)|\S+))?\s?$'
+get_karma.rule = (["karma"], r'(?:(top +(\d)|contrib +(\S+)|\S+))?\s*$')
 
 def nuke_karma(phenny, input):
     if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')
@@ -123,7 +121,7 @@ def nuke_karma(phenny, input):
             phenny.say(input.group(2) + " has been banished from the karmaverse")
             save_karma(phenny)
 nuke_karma.name = 'knuke'
-nuke_karma.rule = r'^\.(knuke) (\S+)$'
+nuke_karma.rule = (["knuke"], r'(\S+)$')
 
 if __name__ == '__main__': 
    print __doc__.strip()
