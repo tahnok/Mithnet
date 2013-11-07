@@ -259,6 +259,7 @@ def karma_alias(phenny, input):
     nick = input.nick
     target = input.group(2)
     phenny.alias_tentative[nick.lower()] = [0, input.sender, target.lower()]
+    phenny.say("Karma merge offer initiated.")
     phenny.write(['WHOIS'], nick)  # logic continued in karma_id
 karma_alias.name = 'klias'
 karma_alias.rule = (["klias", "kmerge"], r"(\S+)\s?$")
@@ -268,6 +269,8 @@ def rm_karma_alias(phenny, input):
     nick = input.nick
     target = input.group(2)
     phenny.alias_tentative[nick.lower()] = [-1, input.sender, target.lower()]
+    phenny.say("Karma merge split initiated.")
+    phenny.write(['WHOIS'], nick)  # logic continued in karma_id
 karma_alias.name = "rm_klias"
 karma_alias.rule = (["rm_klias", "kdemerge"], r"(\S+)\s?$")
 
@@ -304,7 +307,6 @@ def karma_id(phenny, input):
             else:
                 phenny.msg(sender, "Karma alias removal failed.")
             del phenny.alias_tentative[logged_in_as]
-
 karma_id.event = "330"
 karma_id.rule = r"(.*)"
 karma_id.priority = "low"
