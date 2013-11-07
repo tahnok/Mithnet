@@ -55,6 +55,19 @@ class KarmaNode(object):
             self = self._parent
         return self
 
+    def make_root(self, new_parent=None):
+        if new_parent is None:
+            self._set_linked(self.root())
+        else:
+            new_parent.root()._add_linked(self.root())
+        while self is not None:
+            self._children.discard(new_parent)
+            if new_parent is not None:
+                new_parent._children.add(self)
+            # my parent becomes new_parent, my old parent becomes self, and I am the new parent
+            self._parent, self, new_parent = new_parent, self._parent, self
+
+
     def _set_parent(self, parent):
         """Only sets the link, does no checks or updates"""
         self._parent = parent
@@ -65,24 +78,17 @@ class KarmaNode(object):
         return self.root() == other.root()
 
     def add_alias(self, other):
-        r1, r2 = self.root(), other.root()
-        if r1 is r2:  # graph must be acyclical
+        rself, rother = self.root(), other.root()
+        if rself is rother:  # graph must be acyclical
             return False
         if self._parent is None:
             self._set_parent(other)
-            r2._add_linked(self)
+            rother._add_linked(self)
         elif other._parent is None:
             other._set_parent(self)
-            r1._add_linked(other)
+            rself._add_linked(other)
         else:  # decide on one to be the parent
-            r1._add_linked(r2)
-            new_parent = self
-            current = other
-            while current is not None:
-                current._children.discard(new_parent)
-                new_parent._children.add(current)
-                # my parent becomes new_parent, my old parent becomes current, and current is the new parent
-                current._parent, current, new_parent = new_parent, current._parent, current
+            other.make_root(self)
         return True
 
     def remove_alias(self, other):
@@ -111,6 +117,8 @@ def _generic_linked(value_fn):
     return anon
 
 setattr(KarmaNode, "_reset_linked", _generic_linked(lambda _, __, ___: 0))
+setattr(KarmaNode, "_set_linked", _generic_linked(
+    lambda self, other, name: getattr(other, "_linked" + name)))
 setattr(KarmaNode, "_sub_linked", _generic_linked(
     lambda self, other, name: getattr(self, "_linked" + name) - getattr(other, "_linked" + name)))
 setattr(KarmaNode, "_sub_from_linked", _generic_linked(
@@ -228,7 +236,7 @@ def get_karma(phenny, input):
         else:
             phenny.say("That entity does not exist within the karmaverse")
     elif len(phenny.karmas) > 0:
-        karm = dict(((key.root(), kn.karma) for key, kn in phenny.karmas.items()))  # remove duplicates due to aliases
+        karm = dict(((key, kn.karma) for key, kn in phenny.karmas.items() if kn.root() == kn))  # remove duplicates due to aliases
         s_karm = sorted(karm, key=karm.get, reverse=True)
         msg = ', '.join([x + ": " + str(karm[x]) for x in s_karm[:show_top]])
         if msg:
@@ -241,6 +249,16 @@ def get_karma(phenny, input):
         phenny.say("You guys don't have any karma apparently.")
 get_karma.name = 'karma'
 get_karma.rule = (["karma"], r'(?:(top +(\d)|contrib +(\S+)|\S+))?\s*$')
+
+def set_primary_alias(phenny, input):
+    """Set your primary alias, to be displayed in the karma rankings"""
+    nick = input.nick
+    target = input.group(2)
+    phenny.alias_tentative[nick.lower()] = [2, input.sender, target.lower()]
+    phenny.say("Karma primary initiated.")
+    phenny.write(['WHOIS', nick)  # logic continued in karma_id
+set_primary_alias.name = "kprimary"
+set_primary_alias.rule = (["kprimary"], r'(\S+)?\s?$')
 
 def nuke_karma(phenny, input):
     if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')
@@ -268,6 +286,8 @@ def rm_karma_alias(phenny, input):
     """Remove the link between two nicks."""
     nick = input.nick
     target = input.group(2)
+    if target is None:
+        target = nick
     phenny.alias_tentative[nick.lower()] = [-1, input.sender, target.lower()]
     phenny.say("Karma merge split initiated.")
     phenny.write(['WHOIS'], nick)  # logic continued in karma_id
@@ -278,11 +298,11 @@ def karma_id(phenny, input):
     logged_in_as = input.args[2].lower()
     if logged_in_as in phenny.alias_tentative:  # you're looking for someone
         data = phenny.alias_tentative[logged_in_as]
-        verified, sender, target = data
+        action, sender, target = data
         nick = input.args[1]
         if logged_in_as != nick.lower():  # logged in as someone else
             return phenny.msg(sender, "You must be logged in as " + nick)
-        if data[0] == 0:  # add link
+        if action == 0:  # add link
             data[0] = 1  # verified
             if target in phenny.alias_tentative:  # he was looking for someone too
                 tverified, _, tstarget = phenny.alias_tentative[target]
@@ -297,7 +317,7 @@ def karma_id(phenny, input):
                         phenny.msg(sender, "Karma alias failed.")
                     del phenny.alias_tentative[target]
                     del phenny.alias_tentative[tstarget]
-        elif data[0] == -1:  # remove link
+        elif action == -1:  # remove link
             node1 = phenny.karmas[logged_in_as]
             node2 = phenny.karmas[target]
             if node1.remove_alias(node2):
@@ -306,6 +326,15 @@ def karma_id(phenny, input):
                 phenny.msg(sender, "You are not that guy already.")
             else:
                 phenny.msg(sender, "Karma alias removal failed.")
+            del phenny.alias_tentative[logged_in_as]
+        elif action == 2:  # set primary
+            new_primary = phenny.karmas[target]
+            node = phenny.karmas[logged_in_as]
+            if new_primary.is_alias(node):
+                new_primary.make_root()
+                phenny.msg(sender, "Your primary nick is now " + logged_in_as)
+            else:
+                phenny.msg(sender, "You're not even that guy.")
             del phenny.alias_tentative[logged_in_as]
 karma_id.event = "330"
 karma_id.rule = r"(.*)"
