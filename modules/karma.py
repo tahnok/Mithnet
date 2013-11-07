@@ -288,7 +288,7 @@ def karma_id(phenny, input):
                     node2 = phenny.karmas[target]
                     if node1.add_alias(node2):
                         phenny.msg(sender, "You got it, " + target)
-                    elif node1.is_alias(node2)
+                    elif node1.is_alias(node2):
                         phenny.msg(sender, "You're already that guy.")
                     else:
                         phenny.msg(sender, "Karma alias failed.")
