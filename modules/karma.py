@@ -228,7 +228,7 @@ def get_karma(phenny, input):
         else:
             phenny.say("That entity does not exist within the karmaverse")
     elif len(phenny.karmas) > 0:
-        karm = dict(((key, kn.root().karma) for key, kn in phenny.karmas.items()))  # remove duplicates due to aliases
+        karm = dict(((key.root(), kn.karma) for key, kn in phenny.karmas.items()))  # remove duplicates due to aliases
         s_karm = sorted(karm, key=karm.get, reverse=True)
         msg = ', '.join([x + ": " + str(karm[x]) for x in s_karm[:show_top]])
         if msg:
