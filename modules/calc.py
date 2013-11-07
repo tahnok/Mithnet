@@ -10,6 +10,7 @@ http://inamidst.com/phenny/
 
 import re, time
 import web
+import lxml.html
 
 r_result = re.compile(r'(?i)<A NAME=results>(.*?)</A>')
 r_tag = re.compile(r'<\S+.*?>')
@@ -34,17 +35,23 @@ def calc(phenny, input):
    q = input.group(2).encode('utf-8')
    q = q.replace('\xcf\x95', 'phi') # utf-8 U+03D5
    q = q.replace('\xcf\x80', 'pi') # utf-8 U+03C0
-   uri = 'http://www.google.com/ig/calculator?q='
+   uri = 'http://www.google.com/search?q='
    bytes = web.get(uri + web.urllib.quote(q))
-   parts = bytes.split('",')
-   answer = [p for p in parts if p.startswith('rhs: "')][0][6:]
+   html = lxml.html.fromstring(bytes)
+   try:
+      answer = html.get_element_by_id("cwos").text_content().strip()
+   except KeyError:
+      try:
+         answer = html.find_class("vk_ans")[0].text_content()
+      except IndexError:
+         answer = None
    if answer: 
-      answer = answer.decode('unicode-escape')
-      answer = ''.join(chr(ord(c)) for c in answer)
-      answer = answer.decode('utf-8')
-      answer = answer.replace(u'\xc2\xa0', ',')
-      answer = answer.replace('<sup>', '^(')
-      answer = answer.replace('</sup>', ')')
+      # answer = answer.decode('unicode-escape')
+      # answer = ''.join(chr(ord(c)) for c in answer)
+      # answer = answer.decode('utf-8')
+      # answer = answer.replace(u'\xc2\xa0', ',')
+      # answer = answer.replace('<sup>', '^(')
+      # answer = answer.replace('</sup>', ')')
       answer = web.decode(answer)
       phenny.say(answer)
    else: phenny.say('Sorry, no result.')

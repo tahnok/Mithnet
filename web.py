@@ -19,7 +19,8 @@ urllib._urlopener = Grab()
 def get(uri): 
    if not uri.startswith('http'): 
       return
-   u = urllib2.urlopen(uri)
+   request = urllib2.Request(uri, headers={"User-Agent" : "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:26.0) Gecko/20100101 Firefox/26.0"})
+   u = urllib2.urlopen(request)
    bytes = u.read()
    u.close()
    return bytes
