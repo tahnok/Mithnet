@@ -256,7 +256,7 @@ def set_primary_alias(phenny, input):
     target = input.group(2)
     phenny.alias_tentative[nick.lower()] = [2, input.sender, target.lower()]
     phenny.say("Karma primary initiated.")
-    phenny.write(['WHOIS', nick)  # logic continued in karma_id
+    phenny.write(['WHOIS'], nick)  # logic continued in karma_id
 set_primary_alias.name = "kprimary"
 set_primary_alias.rule = (["kprimary"], r'(\S+)?\s?$')
 
