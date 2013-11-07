@@ -271,22 +271,22 @@ def rm_karma_alias(phenny, input):
     phenny.alias_tentative[nick.lower()] = [-1, input.sender, target.lower()]
     phenny.say("Karma merge split initiated.")
     phenny.write(['WHOIS'], nick)  # logic continued in karma_id
-karma_alias.name = "rm_klias"
-karma_alias.rule = (["rm_klias", "kdemerge"], r"(\S+)\s?$")
+rm_karma_alias.name = "rm_klias"
+rm_karma_alias.rule = (["rm_klias", "kdemerge"], r"(\S+)\s?$")
 
 def karma_id(phenny, input):
-    logged_in_as = input.args[2]
+    logged_in_as = input.args[2].lower()
     if logged_in_as in phenny.alias_tentative:  # you're looking for someone
         data = phenny.alias_tentative[logged_in_as]
         verified, sender, target = data
         nick = input.args[1]
-        if logged_in_as.lower() != nick.lower():  # logged in as someone else
+        if logged_in_as != nick.lower():  # logged in as someone else
             return phenny.msg(sender, "You must be logged in as " + nick)
         if data[0] == 0:  # add link
             data[0] = 1  # verified
             if target in phenny.alias_tentative:  # he was looking for someone too
                 tverified, _, tstarget = phenny.alias_tentative[target]
-                if tverified == 1 and tstarget == logged_in_as.lower():  # done.
+                if tverified == 1 and tstarget == logged_in_as:  # done.
                     node1 = phenny.karmas[tstarget]
                     node2 = phenny.karmas[target]
                     if node1.add_alias(node2):
