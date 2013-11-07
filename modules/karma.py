@@ -254,6 +254,8 @@ def set_primary_alias(phenny, input):
     """Set your primary alias, to be displayed in the karma rankings"""
     nick = input.nick
     target = input.group(2)
+    if target is None:
+        target = nick
     phenny.alias_tentative[nick.lower()] = [2, input.sender, target.lower()]
     phenny.say("Karma primary initiated.")
     phenny.write(['WHOIS'], nick)  # logic continued in karma_id
@@ -286,8 +288,6 @@ def rm_karma_alias(phenny, input):
     """Remove the link between two nicks."""
     nick = input.nick
     target = input.group(2)
-    if target is None:
-        target = nick
     phenny.alias_tentative[nick.lower()] = [-1, input.sender, target.lower()]
     phenny.say("Karma merge split initiated.")
     phenny.write(['WHOIS'], nick)  # logic continued in karma_id
