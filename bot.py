@@ -236,4 +236,4 @@ class Phenny(irc.Bot):
                         self.stats[(func.name, source)] = 1
 
 if __name__ == '__main__': 
-   print __doc__
+   print __doc
