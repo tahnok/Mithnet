@@ -3,11 +3,19 @@
 karma.py - Phenny karma Module
 """
 
-import os, re
+import os, re, time
 import pickle
+import string
 
 SHOW_TOP_DEFAULT = 6
 KVERSION = "0.1.6"
+
+REMOVE_LINK = -1
+OFFER_MERGE = 0
+OFFER_VERIFIED = 1
+SET_PRIMARY = 2
+CHECK_LINK_CHANGED = 3
+CHECK_LINK_CHANGER = 4
 
 class KarmaNode(object):
     def __init__(self):
@@ -186,26 +194,71 @@ def karma_me(phenny, input):
         target_nicks.add(phenny.alias_list[target])
     if sender in phenny.alias_list:
         sender_nicks.add(phenny.alias_list[sender])
-    for t in target_nicks:  # target and sender must be disjoint
-        for s in sender_nicks:
-            if phenny.karmas.get(t, KarmaNode()).is_alias(phenny.karmas.get(s, KarmaNode())):
-                if t == s == "benson":  # Mithorium: if you see this don't change it until benson does it once
+    now = time.time()
+    for s in sender_nicks:
+        s = phenny.karmas.get(s, KarmaNode())
+        for t in target_nicks:  # target and sender must be disjoint
+            if phenny.karmas.get(t, KarmaNode()).is_alias(s):
+                if hasattr(s, "last_beak") and s.last_beak + 60 > now:
                     return phenny.say("lol sick beak")
                 return phenny.say("I'm sorry, "+input.nick+". I'm afraid I can't do that.")
 
     for t in target_nicks:
         if t in phenny.seen:  # i at least know who you're talking about.
-            phenny.karmas.setdefault(target, KarmaNode()).karma += karma
-            phenny.karmas.setdefault(sender, KarmaNode())
-            if karma == -1:
-                phenny.karmas[sender].contrib_minus += 1
-            else:
-                phenny.karmas[sender].contrib_plus += 1
-            phenny.say(target+"'s karma is now "+str(phenny.karmas[target].karma))
-            save_karma(phenny)
+            # send_out = []
+            # if target not in phenny.karmas:
+            #     alias_tentative[target] = [CHECK_LINK_CHANGED, input.sender, sender, karma]
+            #     send_out.append(target)
+            # elif sender not in phenny.karmas:
+            #     alias_tentative[sender] = [CHECK_LINK_CHANGER, input.sender, target, karma]
+            #     send_out.append(sender)
+            # else:
+            #     change_karma(phenny, target, sender, karma)
+
+            # for o in send_out:
+            #     phenny.msg("nickserv", "info " + o)
+            change_karma(phenny, target, sender, karma)
             return True
     phenny.notice(input.nick, "I'm sorry. I'm afraid I do not know who that is.")
 karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
+
+def change_karma(phenny, target, sender, karma):
+    phenny.karmas.setdefault(target, KarmaNode()).karma += karma
+    phenny.karmas.setdefault(sender, KarmaNode())
+    if karma == -1:
+        phenny.karmas[sender].contrib_minus += 1
+    else:
+        phenny.karmas[sender].contrib_plus += 1
+    phenny.say(target+"'s karma is now "+str(phenny.karmas[target].karma))
+    save_karma(phenny)
+
+# def verify_nickserv_alias(phenny, input):
+#     if input.nick.lower() != "nickserv":
+#         return
+#     off_acct = input.group(1).lower()
+#     main_acct = input.group(2).lower()
+#     if off_acct.lower() not in phenny.alias_tentative:
+#         return
+
+#     data = phenny.alias_tentative[off_acct]
+#     if data[0] in (CHECK_LINK_CHANGED, CHECK_LINK_CHANGER):
+#         action, return_addr, target, amt = data
+#         del phenny.alias_tentative[off_acct]
+#         if off_acct not in phenny.karmas:
+#             off_karma = KarmaNode()
+#             phenny.karmas[off_acct] = off_karma
+#             if off_acct != main_acct:
+#                 main_karma = phenny.karmas.setdefault(main_acct, KarmaNode())
+#                 main_karma.add_alias(off_karma)
+#         if target not in phenny.alias_tentative:  # done
+#             if action == CHECK_LINK_CHANGED:
+#                 change_karma(phenny, off_acct, target, amt)
+#             else:
+#                 change_karma(phenny, target, off_acct, amt)
+# verify_nickserv_alias.event = "NOTICE"
+# verify_nickserv_alias.rule = r"Information on (\w+) \(account (\w+)\):"
+# verify_nickserv_alias.priority = "low"
+# verify_nickserv_alias.thread = False
 
 def get_karma(phenny, input):
     """Fetch the karma of the given user. If no user is given, or with optional parameters 'top x', gives top and bottom x leaders in karma."""
@@ -256,7 +309,7 @@ def set_primary_alias(phenny, input):
     target = input.group(2)
     if target is None:
         target = nick
-    phenny.alias_tentative[nick.lower()] = [2, input.sender, target.lower()]
+    phenny.alias_tentative[nick.lower()] = [SET_PRIMARY, input.sender, target.lower()]
     phenny.say("Karma primary initiated.")
     phenny.write(['WHOIS'], nick)  # logic continued in karma_id
 set_primary_alias.name = "kprimary"
@@ -274,11 +327,20 @@ def nuke_karma(phenny, input):
 nuke_karma.name = 'knuke'
 nuke_karma.rule = (["knuke"], r'(\S+)$')
 
+def beaked_on(phenny, input):
+    """Lol sick beak"""
+    nick = input.nick.lower()
+    if nick in phenny.karmas:
+        phenny.karmas[nick].last_beak = time.time()
+beaked_on.rule = r"(?i)sick\s+beak"
+
 def karma_alias(phenny, input):
     """Share your karma with another nick you use."""
     nick = input.nick
     target = input.group(2)
-    phenny.alias_tentative[nick.lower()] = [0, input.sender, target.lower()]
+    if target is None:
+        return
+    phenny.alias_tentative[nick.lower()] = [OFFER_MERGE, input.sender, target.lower()]
     phenny.say("Karma merge offer initiated.")
     phenny.write(['WHOIS'], nick)  # logic continued in karma_id
 karma_alias.name = 'klias'
@@ -288,25 +350,57 @@ def rm_karma_alias(phenny, input):
     """Remove the link between two nicks."""
     nick = input.nick
     target = input.group(2)
-    phenny.alias_tentative[nick.lower()] = [-1, input.sender, target.lower()]
+    if target is None:
+        return
+    phenny.alias_tentative[nick.lower()] = [REMOVE_LINK, input.sender, target.lower()]
     phenny.say("Karma merge split initiated.")
     phenny.write(['WHOIS'], nick)  # logic continued in karma_id
 rm_karma_alias.name = "rm_klias"
 rm_karma_alias.rule = (["rm_klias", "kdemerge"], r"(\S+)\s?$")
 
+def force_karma_alias(phenny, input):
+    if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')
+    target1 = input.group(2)
+    target2 = input.group(3)
+    karma1 = phenny.karmas.setdefault(target1.lower(), KarmaNode())
+    karma2 = phenny.karmas.setdefault(target2.lower(), KarmaNode())
+    if karma1.add_alias(karma2):
+        phenny.say("%s and %s successfully kliased." % (target1, target2))
+    elif karma1.is_alias(karma2):
+        phenny.say("%s is already %s." % (target1, target2))
+    else:
+        phenny.say("klias failed.")
+force_karma_alias.rule = (["klias", "kmerge"], r"-f\s+(\S+)\s+(\S+)\s?$")
+
+def force_rm_karma_alias(phenny, input):
+    if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')
+    targets = (input.group(2), input.group(3))
+    target1, target2 = map(string.lower, targets)
+    if target1 not in phenny.karmas or target2 not in phenny.karmas:
+        return phenny.say("rm_klias failed.")
+    karma1 = phenny.karmas[target1]
+    karma2 = phenny.karmas[target2]
+    if karma1.remove_alias(karma2):
+        phenny.say("%s and %s successfully unlinked." % targets)
+    elif not karma1.is_alias(karma2):
+        phenny.say("%s and %s are not linked." % targets)
+    else:
+        phenny.say("Could not unlink %s and %s." % targets)
+force_rm_karma_alias.rule = (["rm_klias", "kdemerge"], r"-f\s+(\S+)\s+(\S+)\s?$")
+
 def karma_id(phenny, input):
     logged_in_as = input.args[2].lower()
     if logged_in_as in phenny.alias_tentative:  # you're looking for someone
         data = phenny.alias_tentative[logged_in_as]
-        action, sender, target = data
         nick = input.args[1]
         if logged_in_as != nick.lower():  # logged in as someone else
             return phenny.msg(sender, "You must be logged in as " + nick)
-        if action == 0:  # add link
-            data[0] = 1  # verified
+        if action == OFFER_MERGE:  # add link
+            action, sender, target = data
+            data[0] = OFFER_VERIFIED  # verified
             if target in phenny.alias_tentative:  # he was looking for someone too
                 tverified, _, tstarget = phenny.alias_tentative[target]
-                if tverified == 1 and tstarget == logged_in_as:  # done.
+                if tverified == OFFER_VERIFIED and tstarget == logged_in_as:  # done.
                     node1 = phenny.karmas[tstarget]
                     node2 = phenny.karmas[target]
                     if node1.add_alias(node2):
@@ -317,7 +411,8 @@ def karma_id(phenny, input):
                         phenny.msg(sender, "Karma alias failed.")
                     del phenny.alias_tentative[target]
                     del phenny.alias_tentative[tstarget]
-        elif action == -1:  # remove link
+        elif action == REMOVE_LINK:  # remove link
+            action, sender, target = data
             node1 = phenny.karmas[logged_in_as]
             node2 = phenny.karmas[target]
             if node1.remove_alias(node2):
@@ -327,7 +422,8 @@ def karma_id(phenny, input):
             else:
                 phenny.msg(sender, "Karma alias removal failed.")
             del phenny.alias_tentative[logged_in_as]
-        elif action == 2:  # set primary
+        elif action == SET_PRIMARY:  # set primary
+            action, sender, target = data
             new_primary = phenny.karmas[target]
             node = phenny.karmas[logged_in_as]
             if new_primary.is_alias(node):
@@ -340,5 +436,5 @@ karma_id.event = "330"
 karma_id.rule = r"(.*)"
 karma_id.priority = "low"
 
-if __name__ == '__main__': 
-   print __doc__.strip()
+if __name__ == '__main__':
+    print __doc__.strip()
