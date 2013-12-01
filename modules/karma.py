@@ -338,6 +338,7 @@ def karma_alias(phenny, input):
     """Share your karma with another nick you use."""
     nick = input.nick
     target = input.group(2)
+    phenny.say("sender: %s, target: %s" % (nick, target))
     if target == "-f":
         return False
     if target is None:
