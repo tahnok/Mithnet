@@ -338,6 +338,8 @@ def karma_alias(phenny, input):
     """Share your karma with another nick you use."""
     nick = input.nick
     target = input.group(2)
+    if target == "-f":
+        return False
     if target is None:
         return
     phenny.alias_tentative[nick.lower()] = [OFFER_MERGE, input.sender, target.lower()]
@@ -350,6 +352,8 @@ def rm_karma_alias(phenny, input):
     """Remove the link between two nicks."""
     nick = input.nick
     target = input.group(2)
+    if target == "-f":
+        return False
     if target is None:
         return
     phenny.alias_tentative[nick.lower()] = [REMOVE_LINK, input.sender, target.lower()]
