@@ -11,7 +11,7 @@ def setup(self):
    self.alias_list = {} #used by seen.py
 
 def joinhandler(phenny, input): 
-   if input.admin:
+   if input.nick not in phenny.ident_admin and input.admin:
       phenny.write(['WHOIS'], input.nick)
 joinhandler.rule = r'(.*)'
 joinhandler.event = 'JOIN'
