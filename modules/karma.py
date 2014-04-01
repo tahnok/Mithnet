@@ -301,15 +301,16 @@ def get_karma(phenny, input):
         else:
             phenny.say("That entity does not exist within the karmaverse")
     elif len(phenny.karmas) > 0:
+        all_karm = dict(((key, kn.karma) for key, kn in phenny.karmas.items()))
         karm = dict(((key, kn.karma) for key, kn in phenny.karmas.items() if kn.root() == kn))  # remove duplicates due to aliases
         s_karm = sorted(karm, key=karm.get, reverse=True)
         if is_fools():
             s_karm = [phenny.fools_dict[u] for u in s_karm]
-        msg = ', '.join([x + ": " + str(karm[x]) for x in s_karm[:show_top]])
+        msg = ', '.join([x + ": " + str(all_karm[x] / 2 - 5) for x in s_karm[:show_top]])
         if msg:
             phenny.say("Best karma: " + msg)
-        worst_karmas = ', '.join([x + ": " + str(karm[x])
-                for x in s_karm[:-show_top-1:-1] if karm[x] < 0])
+        worst_karmas = ', '.join([x + ": " + str(all_karm[x] / 2 - 5)
+                for x in s_karm[:-show_top-1:-1] if all_karm[x] < 0])
         if worst_karmas:
             phenny.say("Worst karma: "+ worst_karmas)
     else:
