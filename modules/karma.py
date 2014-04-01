@@ -4,6 +4,7 @@ karma.py - Phenny karma Module
 """
 
 import os, re, time
+import random
 import pickle
 import string
 
@@ -143,6 +144,7 @@ def filename(self, fname):
 
 def setup(self):
     self.alias_tentative = {}
+    self.fooled = False
     try:
         f = open(filename(self, "karma"), "r")
         self.karmas = pickle.load(f)  # TODO: after the upgrade change to:
@@ -172,8 +174,14 @@ def setup(self):
             version, self.karmas = self.karmas  # TODO: yell (or upgrade) on version mismatch
     except IOError:
         pass
+    klist = list(self.karma)
+    self.fools_dict = dict(zip(klist, klist[1:] + [klist[0]]))
 
 def save_karma(self):
+    if self.fooled and not is_fools():
+        for nick, node in self.karmas.items():
+            del node.fools_talk
+        self.fooled = False
     try:
         f = open(filename(self, "karma"), "w")
         pickle.dump((KVERSION, self.karmas), f)
@@ -201,6 +209,8 @@ def karma_me(phenny, input):
             if phenny.karmas.get(t, KarmaNode()).is_alias(s):
                 if hasattr(s, "last_beak") and s.last_beak + 60 > now:
                     return phenny.say("lol sick beak")
+                if is_fools():
+                    return report_karma_update(phenny, input.nick)
                 return phenny.say("I'm sorry, "+input.nick+". I'm afraid I can't do that.")
 
     for t in target_nicks:
@@ -229,7 +239,7 @@ def change_karma(phenny, target, sender, karma):
         phenny.karmas[sender].contrib_minus += 1
     else:
         phenny.karmas[sender].contrib_plus += 1
-    phenny.say(target+"'s karma is now "+str(phenny.karmas[target].karma))
+    report_karma_update(phenny, target)
     save_karma(phenny)
 
 # def verify_nickserv_alias(phenny, input):
@@ -277,6 +287,8 @@ def get_karma(phenny, input):
             phenny.say(contrib + " has not altered any karma.")
             return
         up, down = map(str, (phenny.karmas[lcontrib].contrib_plus, phenny.karmas[lcontrib].contrib_minus))
+        if is_fools():
+            down, up = up, down
         phenny.say(' '.join((contrib, "has granted", up, "karma and removed", down, "karma.")))
         return
     else:
@@ -285,12 +297,14 @@ def get_karma(phenny, input):
     if nick:
         nick = nick.lower()
         if nick in phenny.karmas:
-            phenny.say(nick + " has " + str(phenny.karmas[nick].karma) + " karma.")
+            phenny.say(nick + " has " + str(report_karma_update(phenny, nick, silent=True)) + " karma.")
         else:
             phenny.say("That entity does not exist within the karmaverse")
     elif len(phenny.karmas) > 0:
         karm = dict(((key, kn.karma) for key, kn in phenny.karmas.items() if kn.root() == kn))  # remove duplicates due to aliases
         s_karm = sorted(karm, key=karm.get, reverse=True)
+        if is_fools():
+            s_karm = [phenny.fools_dict[u] for u in s_karm]
         msg = ', '.join([x + ": " + str(karm[x]) for x in s_karm[:show_top]])
         if msg:
             phenny.say("Best karma: " + msg)
@@ -440,6 +454,39 @@ def karma_id(phenny, input):
 karma_id.event = "330"
 karma_id.rule = r"(.*)"
 karma_id.priority = "low"
+
+def fools_speech(phenny, input):
+    if is_fools():
+        phenny.fooled = True
+        node = phenny.karmas.setdefault(input.nick.lower(), KarmaNode())
+        try:
+            node.fools_talk += 1
+        except AttributeError:
+            node.fools_talk = 1
+        if node.fools_talk > random.randint(25, 100):
+            node.fools_talk = -float("inf")
+            nick = input.nick
+            if random.randint(0, 9):
+                report_karma_update(phenny, nick)
+            else:
+                phenny.say("%s has been banished from the karmaverse" % nick)
+fools_speech.rule = r"(.*)"
+
+def is_fools():
+    return time.strftime("%m %d") == "04 01"  # shut up
+
+def report_karma_update(phenny, nick, silent=False):
+    if is_fools():
+        lnick = nick.lower()
+        if lnick not in phenny.fools_dict:
+            phenny.fools_dict["mithorium"], phenny.fools_dict[lnick] = (
+                lnick, phenny.fools_dict["mithorium"])
+        value = phenny.karmas[phenny.fools_dict[lnick]].karma
+    else:
+        value = phenny.karmas[nick].karma
+    if not silent:
+        phenny.say(nick + "'s karma is now " + str(value))
+    return value
 
 if __name__ == '__main__':
     print __doc__.strip()
