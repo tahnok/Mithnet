@@ -174,7 +174,7 @@ def setup(self):
             version, self.karmas = self.karmas  # TODO: yell (or upgrade) on version mismatch
     except IOError:
         pass
-    klist = list(self.karma)
+    klist = list(self.karmas)
     self.fools_dict = dict(zip(klist, klist[1:] + [klist[0]]))
 
 def save_karma(self):
