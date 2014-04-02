@@ -306,10 +306,11 @@ def get_karma(phenny, input):
         s_karm = sorted(karm, key=karm.get, reverse=True)
         if is_fools():
             s_karm = [phenny.fools_dict[u] for u in s_karm]
-        msg = ', '.join([x + ": " + str(all_karm[x] / 2 - 5) for x in s_karm[:show_top]])
+            all_karm = dict(((key, karma / 2 - 5) for key, karma in all_karm.items()))
+        msg = ', '.join([x + ": " + str(all_karm[x]) for x in s_karm[:show_top]])
         if msg:
             phenny.say("Best karma: " + msg)
-        worst_karmas = ', '.join([x + ": " + str(all_karm[x] / 2 - 5)
+        worst_karmas = ', '.join([x + ": " + str(all_karm[x])
                 for x in s_karm[:-show_top-1:-1] if all_karm[x] < 0])
         if worst_karmas:
             phenny.say("Worst karma: "+ worst_karmas)
