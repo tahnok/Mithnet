@@ -52,6 +52,6 @@ quote_me.rule = ('$nick', ['quote'], r'(?:\d\d?:?\s?)*(<[@+ ]?\S+>|\S+:?)\s+(.*)
 def get_quote(phenny, input):
     nick = input.group(2).lower()
     if nick in phenny.quotes:
-        return phenny.say("<%s> %s", (nick, random.choice(phenny.quotes[nick])))
+        return phenny.say("<%s> %s" % (nick, random.choice(phenny.quotes[nick])))
     return phenny.say("%s has never said anything noteworthy." % input.group(2))
 get_quote.rule = (["quote"], r"(\S+)")
