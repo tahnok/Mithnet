@@ -41,7 +41,7 @@ def quote_me(phenny, input):
     phenny.msg("Orez", "{%s:%s}" % (user, msg))
     if (user, msg) in phenny.logs:
         phenny.quotes.setdefault(user, []).append(msg)
-        phenny.quotes = phenny.quotes[-MAX_QUOTES:]
+        phenny.quotes[user] = phenny.quotes[user][-MAX_QUOTES:]
         save_quotes(phenny)
         phenny.say("Quote added")
     else:
