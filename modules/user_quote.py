@@ -12,8 +12,8 @@ def setup(self):
     self.logs = []
     self.quotes = {}
     try:
-        f = open(filename(self, "karma"), "r")
-        self.quotes = pickle.load(f)
+        f = open(filename(self, "quotes"), "r")
+        num, self.quotes = pickle.load(f)
         f.close()
     except IOError:
         pass
@@ -40,13 +40,13 @@ def quote_me(phenny, input):
     user = re.sub(r"[<>:]", "", user.lower())
     phenny.msg("Orez", "{%s:%s}" % (user, msg))
     if (user, msg) in phenny.logs:
-        phenny.quotes[user].append(msg)
+        phenny.quotes.setdefault(user, []).append(msg)
         phenny.quotes = phenny.quotes[-MAX_QUOTES:]
         save_quotes(phenny)
         phenny.say("Quote added")
     else:
         phenny.say("I'm not convinced %s ever said that." % input.group(2))
-quote_me.rule = ('$nick', ['quote'], r'(?:\d\d?:?\s?)*(<[@+ ]\S+>|\S+:?)\s+(.*)')
+quote_me.rule = ('$nick', ['quote'], r'(?:\d\d?:?\s?)*(<[@+ ]?\S+>|\S+:?)\s+(.*)')
 
 
 def get_quote(phenny, input):
