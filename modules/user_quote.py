@@ -36,7 +36,7 @@ log.rule = r"(.*)"
 
 def quote_me(phenny, input):
     user, msg = input.group(1), input.group(2)
-    user = re.sub(r"[<>:]", user.lower())
+    user = re.sub(r"[<>:]", "", user.lower())
     if (user, msg) in phenny.quotes:
         phenny.quotes[user].append(msg)
         phenny.quotes = phenny.quotes[-MAX_QUOTES:]
