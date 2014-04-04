@@ -3,10 +3,11 @@
 karma.py - Phenny karma Module
 """
 
-import os, re, time
+import time
 import random
 import pickle
 import string
+from modules import filename
 
 SHOW_TOP_DEFAULT = 6
 KVERSION = "0.1.6"
@@ -137,10 +138,6 @@ setattr(KarmaNode, "_add_linked", _generic_linked(
 setattr(KarmaNode, "_add_to_linked", _generic_linked(
     lambda self, other, name: getattr(self, "_linked" + name) + getattr(other, name)))
 
-
-def filename(self, fname):
-    name = ''.join((self.nick, '-', self.config.host, '.', fname, '.db'))
-    return os.path.join(os.path.expanduser('~/.phenny'), name)
 
 def setup(self):
     self.alias_tentative = {}
