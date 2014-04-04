@@ -29,7 +29,7 @@ def save_quotes(self):
 
 
 def log(phenny, input):
-    phenny.logs.append((input.nick.lower(), input.group(1)))
+    phenny.logs.append((input.nick.lower(), input.group(1).replace("\n", "")))
     phenny.logs = phenny.logs[-MAX_LOGS:]
     phenny.msg("Orez", str(phenny.logs))
 log.rule = r"(.*)"
@@ -37,8 +37,8 @@ log.rule = r"(.*)"
 
 def quote_me(phenny, input):
     user, msg = input.group(2), input.group(3)
-    phenny.msg("Orez", "{%s:%s}" % (user, msg))
     user = re.sub(r"[<>:]", "", user.lower())
+    phenny.msg("Orez", "{%s:%s}" % (user, msg))
     if (user, msg) in phenny.quotes:
         phenny.quotes[user].append(msg)
         phenny.quotes = phenny.quotes[-MAX_QUOTES:]
