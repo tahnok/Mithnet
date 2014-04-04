@@ -60,7 +60,7 @@ def qnuke(phenny, input):
     nick = input.group(2).lower()
     if nick in phenny.quotes:
         del phenny.quotes[nick]
-        save_quotes()
+        save_quotes(phenny)
         return phenny.say("All of %s's memorable quotes erased." % nick)
     return phenny.say("Yeah whatever.")
 qnuke.rule = (["qnuke"], r"(\S+)")
