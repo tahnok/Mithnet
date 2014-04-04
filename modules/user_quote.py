@@ -43,7 +43,7 @@ def quote_me(phenny, input):
         save_quotes(phenny)
         phenny.say("Quote added")
     else:
-        phenny.say("I'm not convinced %s ever said that." % input.group(1))
+        phenny.say("I'm not convinced %s ever said that." % input.group(2))
 quote_me.rule = ('$nick', ['quote'], r'(?:\d\d?:?\s?)*(<[@+ ]\S+>|\S+:?)\s+(.*)')
 
 
