@@ -39,7 +39,7 @@ def quote_me(phenny, input):
     user, msg = input.group(2), input.group(3)
     user = re.sub(r"[<>:]", "", user.lower())
     phenny.msg("Orez", "{%s:%s}" % (user, msg))
-    if (user, msg) in phenny.quotes:
+    if (user, msg) in phenny.logs:
         phenny.quotes[user].append(msg)
         phenny.quotes = phenny.quotes[-MAX_QUOTES:]
         save_quotes(phenny)
@@ -53,5 +53,5 @@ def get_quote(phenny, input):
     nick = input.group(1).lower()
     if nick in phenny.quotes:
         return phenny.say("<%s> %s", (nick, random.choice(phenny.quotes[nick])))
-    return phenny.say("%s has ever said anything noteworthy." % input.group(1))
+    return phenny.say("%s has never said anything noteworthy." % input.group(1))
 get_quote.rule = ([".quote"], r"(\S+)")
