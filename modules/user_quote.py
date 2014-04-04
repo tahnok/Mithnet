@@ -53,3 +53,14 @@ def get_quote(phenny, input):
         return phenny.say("<%s> %s" % (nick, random.choice(phenny.quotes[nick])))
     return phenny.say("%s has never said anything noteworthy." % input.group(2))
 get_quote.rule = (["quote"], r"(\S+)")
+
+
+def qnuke(phenny, input):
+    if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')
+    nick = input.group(2).lower()
+    if nick in phenny.quotes:
+        del phenny.quotes[nick]
+        save_quotes()
+        return phenny.say("All of %s's memorable quotes erased." % nick)
+    return phenny.say("Yeah whatever.")
+qnuke.rule = (["qnuke"], r"(\S+)")
