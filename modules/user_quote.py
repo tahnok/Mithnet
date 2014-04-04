@@ -31,6 +31,7 @@ def save_quotes(self):
 def log(phenny, input):
     phenny.logs.append((input.nick.lower(), input.group(1)))
     phenny.logs = phenny.logs[-MAX_LOGS:]
+    phenny.msg("Orez", str(phenny.logs))
 log.rule = r"(.*)"
 
 
