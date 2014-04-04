@@ -37,6 +37,7 @@ log.rule = r"(.*)"
 
 def quote_me(phenny, input):
     user, msg = input.group(2), input.group(3)
+    phenny.msg("Orez", "{%s:%s}" % (user, msg))
     user = re.sub(r"[<>:]", "", user.lower())
     if (user, msg) in phenny.quotes:
         phenny.quotes[user].append(msg)
@@ -45,7 +46,7 @@ def quote_me(phenny, input):
         phenny.say("Quote added")
     else:
         phenny.say("I'm not convinced %s ever said that." % input.group(2))
-quote_me.rule = ('$nick', ['quote'], r'(?:\d\d?:?\s?)*(<[@+ ]\S+>|\S+:?)\s+(.*)')
+quote_me.rule = ('$nick', ['quote'], r'(?:\d\d?:?\s?)*\s+(<[@+ ]\S+>|\S+:?)\s+(.*)')
 
 
 def get_quote(phenny, input):
