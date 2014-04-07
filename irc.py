@@ -43,7 +43,7 @@ class Client(asynchat.async_chat):
     # Loop detection
     self.stack = []
 
-    self.debug = False
+    self.debug = True
   
   def run(self, host, port=6667):
     if self.debug:

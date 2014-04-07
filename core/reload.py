@@ -26,7 +26,7 @@ def f_reload(phenny, input):
    if not sys.modules.has_key(name): 
       return phenny.say('%s: no such module!' % name)
    else:
-      phenny.unregister(vars(sys.modules[name]))
+      phenny.unregister(name)
       path = sys.modules[name].__file__
       del sys.modules[name]
 
@@ -45,7 +45,7 @@ def f_reload(phenny, input):
    mtime = os.path.getmtime(module.__file__)
    modified = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(mtime))
 
-   phenny.register(vars(module))
+   phenny.register(name, vars(module))
    phenny.bind_commands()
 
    phenny.say('%r (version: %s)' % (module, modified))

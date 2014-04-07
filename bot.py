@@ -144,64 +144,6 @@ class IRCBot(irc.Client):
             pattern = template % (self.config.prefix, command)
             regexp = re.compile(pattern)
             bind(self, func.priority, regexp, func)
-
-  def bind_once(self, func):
-    def bind(self, regexp, func): 
-      self.runonce.setdefault(regexp, []).append(func)
-
-    def sub(pattern, self=self): 
-      # These replacements have significant order
-      pattern = pattern.replace('$nickname', re.escape(self.nick))
-      return pattern.replace('$nick', r'%s[,:] +' % re.escape(self.nick))
-
-    for module in self.modules:
-      for name, func in module.iteritems(): 
-        # print name, func
-        if not hasattr(func, 'thread'): 
-          func.thread = True
-
-        if not hasattr(func, 'event'): 
-          func.event = 'PRIVMSG'
-        else: func.event = func.event.upper()
-
-        if hasattr(func, 'rule'): 
-          if isinstance(func.rule, str): 
-            pattern = sub(func.rule)
-            regexp = re.compile(pattern)
-            bind(self, regexp, func)
-
-          if isinstance(func.rule, tuple): 
-            # 1) e.g. ('$nick', '(.*)')
-            if len(func.rule) == 2 and isinstance(func.rule[0], str): 
-              prefix, pattern = func.rule
-              prefix = sub(prefix)
-              regexp = re.compile(prefix + pattern)
-              bind(self, regexp, func)
-
-            # 2) e.g. (['p', 'q'], '(.*)')
-            elif len(func.rule) == 2 and isinstance(func.rule[0], list): 
-              prefix = self.config.prefix
-              commands, pattern = func.rule
-              for command in commands: 
-                 command = r'(%s)\b(?: +(?:%s))?' % (command, pattern)
-                 regexp = re.compile(prefix + command)
-                 bind(self, regexp, func)
-
-            # 3) e.g. ('$nick', ['p', 'q'], '(.*)')
-            elif len(func.rule) == 3: 
-              prefix, commands, pattern = func.rule
-              prefix = sub(prefix)
-              for command in commands: 
-                command = r'(%s) +' % command
-                regexp = re.compile(prefix + command + pattern)
-                bind(self, regexp, func)
-
-        if hasattr(func, 'commands'): 
-          for command in func.commands: 
-            template = r'^%s(%s)(?: +(.*))?$'
-            pattern = template % (self.config.prefix, command)
-            regexp = re.compile(pattern)
-            bind(self, regexp, func)
   
   def context(self, origin, text): 
     class ContextWrapper(object): 
@@ -250,28 +192,6 @@ class IRCBot(irc.Client):
   def dispatch(self, origin, args): 
     bytes, event, args = args[0], args[1], args[2:]
     text = decode(bytes)
-    
-    def dispatch_once(regexp):
-      def match_once(func):
-        if event != func.event: return True
-        match = regexp.match(text)
-        if match:
-          context = self.context(origin, text)
-          input = self.input(origin, text, bytes, match, event, args)
-
-          if func.thread: 
-            targs = (func, origin, context, input)
-            t = threading.Thread(target=self.call, args=targs)
-            t.start()
-          else: self.call(func, origin, context, input)
-          return False
-      funcs = [func for func in self.runonce[regexp] if match_once(func)]
-      if funcs:
-        self.runonce[regexp] = funcs
-        return True
-      else:
-        return False
-    self.runonce = {regexp: self.runonce[regexp] for regexp in self.runonce.keys() if dispatch_once(regexp)}
     
     for priority in ('high', 'medium', 'low'): 
       items = self.commands[priority].items()
