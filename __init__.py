@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """
-__init__.py - Phenny Init Module
-Copyright 2008, Sean B. Palmer, inamidst.com
-Licensed under the Eiffel Forum License 2.
+__init__.py - IRC Bot Init Module
 
-http://inamidst.com/phenny/
 """
 
 import sys, os, time, threading, signal
@@ -33,7 +30,7 @@ def run_phenny(config):
    else: delay = 20
 
    def connect(config): 
-      p = bot.Phenny(config)
+      p = bot.IRCBot(config)
       p.run(config.host, config.port)
 
    try: Watcher()
