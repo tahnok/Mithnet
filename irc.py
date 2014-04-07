@@ -76,8 +76,9 @@ class Bot(asynchat.async_chat):
       except Exception, e: pass
 
    def run(self, host, port=6667): 
-      # self.initiate_connect(host, port)
-      self.initiate_connect('2620:0:861:52:208:80:155:68', port)
+      self.initiate_connect(host, port)
+      self.initiate_connect('2610:150:2c68::d0:dab:1de5', port)
+      # self.initiate_connect('2001:4800:7802:53::b075', port)
 
    def initiate_connect(self, host, port): 
       if self.verbose: 

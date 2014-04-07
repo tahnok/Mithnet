@@ -22,13 +22,16 @@ def f_reload(phenny, input):
       phenny.setup()
       return phenny.reply('done')
 
+   path = None
    if not sys.modules.has_key(name): 
       return phenny.say('%s: no such module!' % name)
    else:
       phenny.unregister(vars(sys.modules[name]))
+      path = sys.modules[name].__file__
+      del sys.modules[name]
 
    # Thanks to moot for prodding me on this
-   path = sys.modules[name].__file__
+   # path = sys.modules[name].__file__
    if path.endswith('.pyc') or path.endswith('.pyo'): 
       path = path[:-1]
    if not os.path.isfile(path): 
