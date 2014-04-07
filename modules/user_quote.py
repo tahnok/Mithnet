@@ -29,7 +29,7 @@ def save_quotes(self):
 
 
 def log(phenny, input):
-    phenny.logs.append((input.nick.lower(), input.group(1).replace("\n", "")))
+    phenny.logs.append((input.nick.lower(), input.group(1).replace("\n", "").lstrip(" ")))
     phenny.logs = phenny.logs[-MAX_LOGS:]
 log.rule = r"(.*)"
 
@@ -64,3 +64,15 @@ def qnuke(phenny, input):
         return phenny.say("All of %s's memorable quotes erased." % nick)
     return phenny.say("Yeah whatever.")
 qnuke.rule = (["qnuke"], r"(\S+)")
+
+
+def debug_log(phenny, input):
+    if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')
+    tor = "["
+    for log in phenny.logs:
+        if len(tor) + len(log) >= 490:
+            phenny.notice(tor)
+            tor = ""
+        tor += log + ", "
+    return phenny.notice(input.nick, tor + "]")
+debug_log.rule = (["debuglog"], )
