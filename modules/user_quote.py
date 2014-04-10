@@ -35,6 +35,8 @@ log.rule = r"(.*)"
 
 
 def quote_me(phenny, input):
+    if input.group(2) is None or input.group(3) is None:
+        return phenny.say("I'm not convinced you're even trying to quote someone???")
     user, msg = input.group(2), input.group(3)
     user = re.sub(r"[\[\]<>: +@]", "", user.lower())
     if (user, msg) in phenny.logs:
@@ -48,7 +50,12 @@ quote_me.rule = ('$nick', ['quote'], r'\[?(?:\d\d?:?\s?)*\]?(<[\[\]@+ ]?\S+>|\S+
 
 
 def get_quote(phenny, input):
-    nick = input.group(2).lower()
+    if input.group(2) is None:
+        if not phenny.quotes:
+            return phenny.say("You guys don't even have any quotes.")
+        nick = random.choice(phenny.quotes.keys())
+    else:
+        nick = input.group(2).lower()
     if nick in phenny.quotes:
         return phenny.say("<%s> %s" % (nick, random.choice(phenny.quotes[nick])))
     return phenny.say("%s has never said anything noteworthy." % input.group(2))
@@ -56,6 +63,8 @@ get_quote.rule = (["quote"], r"(\S+)")
 
 
 def qnuke(phenny, input):
+    if input.group(2) is None:
+        return
     if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')
     nick = input.group(2).lower()
     if nick in phenny.quotes:
