@@ -43,7 +43,7 @@ class Client(asynchat.async_chat):
     # Loop detection
     self.stack = []
 
-    self.debug = True
+    self.debug = False
   
   def run(self, host, port=6667):
     if self.debug:
@@ -180,14 +180,14 @@ class Client(asynchat.async_chat):
     
   # Shortcuts
   def __writecmd(self, command, recipient, text):
-    if isinstance(text, unicode): 
-      try: text = text.encode('utf-8')
-      except UnicodeEncodeError, e: 
-        text = e.__class__ + ': ' + str(e)
-    if isinstance(recipient, unicode): 
-      try: recipient = recipient.encode('utf-8')
-      except UnicodeEncodeError, e: 
-        return
+    # if isinstance(text, unicode): 
+      # try: text = text.encode('utf-8')
+      # except UnicodeEncodeError, e: 
+        # text = e.__class__ + ': ' + str(e)
+    # if isinstance(recipient, unicode): 
+      # try: recipient = recipient.encode('utf-8')
+      # except UnicodeEncodeError, e: 
+        # return
 
     # Loop detection, do not send more than 4 identical messages in 24 seconds
     now = time.time()

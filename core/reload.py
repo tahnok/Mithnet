@@ -78,7 +78,7 @@ def f_load(phenny, input):
    mtime = os.path.getmtime(module.__file__)
    modified = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(mtime))
 
-   phenny.register(vars(module))
+   phenny.register(name,vars(module))
    phenny.bind_commands()
 
    phenny.reply('%r (version: %s)' % (module, modified))
