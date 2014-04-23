@@ -323,7 +323,7 @@ def stupid_test(phenny, input):
     else:
         phenny.say('stupid: ' + input.group(2))
 stupid_test.name = 'karma stupid'
-stupid_test.rule = ('karma', r'stupid +(\d)$')
+stupid_test.rule = (['karma'], r'stupid +(\d)$')
 
 def set_primary_alias(phenny, input):
     """Set your primary alias, to be displayed in the karma rankings"""
