@@ -316,6 +316,14 @@ def get_karma(phenny, input):
 get_karma.name = 'karma'
 get_karma.rule = (["karma"], r'(?:(top +(\d)|contrib +(\S+)|\S+))?\s*$')
 
+def stupid_test(phenny, input):
+    """Stupid friggin test."""
+    if input.group(2) is None:
+        phenny.say("Incredibly stupid.")
+    phenny.say('stupid: ' + input.group(2))
+stupid_test.name = 'karma stupid'
+stupid_test.rule = (['karma'], r'stupid +(\d)$')
+
 def set_primary_alias(phenny, input):
     """Set your primary alias, to be displayed in the karma rankings"""
     nick = input.nick
