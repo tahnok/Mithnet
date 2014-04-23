@@ -125,7 +125,7 @@ class IRCBot(irc.Client):
               prefix = self.config.prefix
               commands, pattern = func.rule
               for command in commands: 
-                 command = r'(%s)\b(?: +(?:%s))?' % (command, pattern)
+                 command = r'(%s) +%s' % (command, pattern)
                  regexp = re.compile(prefix + command)
                  bind(self, func.priority, regexp, func)
 
