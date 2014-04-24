@@ -267,37 +267,16 @@ def change_karma(phenny, target, sender, karma):
 # verify_nickserv_alias.priority = "low"
 # verify_nickserv_alias.thread = False
 
-def get_karma(phenny, input):
-    """Fetch the karma of the given user. If no user is given, or with optional parameters 'top x', gives top and bottom x leaders in karma."""
-    if not hasattr(phenny, 'karmas'):
-        return phenny.say('error?')
-    show_top = input.group(3)
-    contrib = input.group(4)
-    if show_top is not None:  # want to show the top x
-        nick = None
-        show_top = int(show_top)
-    elif contrib is not None:  # want to show how much karma someone's changed
-        lcontrib = contrib.lower()
-        if lcontrib not in phenny.karmas or not (
-                phenny.karmas[lcontrib].contrib_plus or
-                phenny.karmas[lcontrib].contrib_minus):
-            phenny.say(contrib + " has not altered any karma.")
-            return
-        up, down = map(str, (phenny.karmas[lcontrib].contrib_plus, phenny.karmas[lcontrib].contrib_minus))
-        if is_fools():
-            down, up = up, down
-        phenny.say(' '.join((contrib, "has granted", up, "karma and removed", down, "karma.")))
-        return
-    else:
-        nick = input.group(2)
-        show_top = SHOW_TOP_DEFAULT
-    if nick:
-        nick = nick.lower()
-        if nick in phenny.karmas:
-            phenny.say(nick + " has " + str(report_karma_update(phenny, nick, silent=True)) + " karma.")
-        else:
-            phenny.say("That entity does not exist within the karmaverse")
-    elif len(phenny.karmas) > 0:
+def ensure_karma(fn):
+    def anon(phenny, input):
+        if not hasattr(phenny, 'karmas'):
+            return phenny.say('error?')
+        return fn(phenny, input)
+    return anon
+
+@ensure_karma
+def _tell_top_x_karma(phenny, show_top):
+    if len(phenny.karmas) > 0:
         all_karm = dict(((key, kn.karma) for key, kn in phenny.karmas.items()))
         karm = dict(((key, kn.karma) for key, kn in phenny.karmas.items() if kn.root() == kn))  # remove duplicates due to aliases
         s_karm = sorted(karm, key=karm.get, reverse=True)
@@ -313,17 +292,45 @@ def get_karma(phenny, input):
             phenny.say("Worst karma: "+ worst_karmas)
     else:
         phenny.say("You guys don't have any karma apparently.")
-get_karma.name = 'karma'
-get_karma.rule = (["karma"], r'(?:(top +(\d)|contrib +(\S+)|\S+))?\s*$')
 
-def stupid_test(phenny, input):
-    """Stupid friggin test."""
-    if input.group(2) is None:
-        phenny.say("Incredibly stupid.")
+@ensure_karma
+def get_karma_contrib(phenny, input):
+    contrib = input.group(2)
+    lcontrib = contrib.lower()
+    if lcontrib not in phenny.karmas or not (
+            phenny.karmas[lcontrib].contrib_plus or
+            phenny.karmas[lcontrib].contrib_minus):
+        phenny.say(contrib + " has not altered any karma.")
+        return
+    up, down = map(str, (phenny.karmas[lcontrib].contrib_plus, phenny.karmas[lcontrib].contrib_minus))
+    if is_fools():
+        down, up = up, down
+    phenny.say(' '.join((contrib, "has granted", up, "karma and removed", down, "karma.")))
+get_karma_contrib.name = 'karma'
+get_karma_contrib.rule = (['karma'], r'contrib (\S+)\s*$')
+
+@ensure_karma
+def get_top_karma(phenny, input):
+    _tell_top_x_karma(phenny, SHOW_TOP_DEFAULT)
+get_top_karma.name = 'karma'
+get_top_karma.rule = (['karma'], r'\s*$')
+
+@ensure_karma
+def get_top_x_karma(phenny, input):
+    _tell_top_x_karma(phenny, int(input.group(2)))
+get_top_x_karma.name = 'karma'
+get_top_x_karma.rule = (['karma'], r'top (\d)\s*$')
+
+@ensure_karma
+def get_user_karma(phenny, input):
+    nick = input.group(2)
+    lnick = nick.lower()
+    if lnick in phenny.karmas:
+        phenny.say(nick + " has " + str(report_karma_update(phenny, lnick, silent=True)) + " karma.")
     else:
-        phenny.say('stupid: ' + input.group(2))
-stupid_test.name = 'karma stupid'
-stupid_test.rule = (['karma'], r'stupid +(\d)$')
+        phenny.say("That entity does not exist within the karmaverse")
+get_user_karma.name = 'karma'
+get_user_karma.rule = (['karma'], r'(\S+) *$')
 
 def set_primary_alias(phenny, input):
     """Set your primary alias, to be displayed in the karma rankings"""
@@ -335,7 +342,7 @@ def set_primary_alias(phenny, input):
     phenny.say("Karma primary initiated.")
     phenny.write(['WHOIS'], nick)  # logic continued in karma_id
 set_primary_alias.name = "kprimary"
-set_primary_alias.rule = (["kprimary"], r'(\S+)?\s?$')
+set_primary_alias.rule = (["kprimary"], r'(\S+)', r'? *$')
 
 def nuke_karma(phenny, input):
     if input.nick not in phenny.ident_admin: return phenny.notice(input.nick, 'Requires authorization. Use .auth to identify')

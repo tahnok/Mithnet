@@ -107,39 +107,49 @@ class IRCBot(irc.Client):
         else: func.event = func.event.upper()
 
         if hasattr(func, 'rule'): 
-          if isinstance(func.rule, str): 
+          if isinstance(func.rule, str):
             pattern = sub(func.rule)
             regexp = re.compile(pattern)
             bind(self, func.priority, regexp, func)
 
-          if isinstance(func.rule, tuple): 
+          if isinstance(func.rule, tuple):
+            types = list(map(type, func.rule))
             # 1) e.g. ('$nick', '(.*)')
-            if len(func.rule) == 2 and isinstance(func.rule[0], str): 
+            if types == [str, str]:
               prefix, pattern = func.rule
               prefix = sub(prefix)
               regexp = re.compile(prefix + pattern)
               bind(self, func.priority, regexp, func)
 
             # 2) e.g. (['p', 'q'], '(.*)')
-            elif len(func.rule) == 2 and isinstance(func.rule[0], list): 
+            elif types == [list, str]:
               prefix = self.config.prefix
               commands, pattern = func.rule
-              for command in commands: 
-                 command = r'(%s)\b(?: +(?:%s))?' % (command, pattern)
+              for command in commands:
+                 command = r'(%s) +%s' % (command, pattern)
                  regexp = re.compile(prefix + command)
                  bind(self, func.priority, regexp, func)
 
             # 3) e.g. ('$nick', ['p', 'q'], '(.*)')
-            elif len(func.rule) == 3: 
+            elif types == [str, list, str]:
               prefix, commands, pattern = func.rule
               prefix = sub(prefix)
-              for command in commands: 
+              for command in commands:
                 command = r'(%s) +' % command
                 regexp = re.compile(prefix + command + pattern)
                 bind(self, func.priority, regexp, func)
 
+            # 4) e.g. (['p', 'q'], '(.*)', '?')
+            elif types == [list, str, str]:
+              prefix = self.config.prefix
+              commands, pattern, ending = func.rule
+              for command in commands:
+                 command = r'(%s)(?: +%s)%s' % (command, pattern, ending)
+                 regexp = re.compile(prefix + command)
+                 bind(self, func.priority, regexp, func)
+
         if hasattr(func, 'commands'): 
-          for command in func.commands: 
+          for command in func.commands:
             template = r'^%s(%s)(?: +(.*))?$'
             pattern = template % (self.config.prefix, command)
             regexp = re.compile(pattern)
