@@ -313,7 +313,7 @@ get_karma_contrib.rule = (['karma'], r'contrib (\S+)\s*$')
 def get_top_karma(phenny, input):
     _tell_top_x_karma(phenny, SHOW_TOP_DEFAULT)
 get_top_karma.name = 'karma'
-get_top_karma.rule = (['karma'], '', r'$')
+get_top_karma.rule = (['karma'], '', r'?$')
 
 @ensure_karma
 def get_top_x_karma(phenny, input):
