@@ -18,7 +18,7 @@ def doc(phenny, input):
       phenny.say(phenny.doc[name][0])
       if phenny.doc[name][1]: 
          phenny.say('e.g. ' + phenny.doc[name][1])
-doc.rule = (['doc','help'], '([A-Za-z]+)(?:[?!]+)?$')
+doc.rule = (['doc','help'], r'([A-Za-z]+)(?:[?!]+)', r'?$')
 doc.example = '.help doc?'
 doc.priority = 'low'
 
@@ -41,6 +41,8 @@ help.priority = 'low'
 
 def stats(phenny, input): 
    """Show information on command usage patterns."""
+   if not hasattr(phenny, 'stats'):
+      return phenny.say("Stats have been disabled.")
    commands = {}
    users = {}
    channels = {}
