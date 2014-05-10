@@ -8,11 +8,11 @@ import irc
 
 home = os.getcwd()
 
-def decode(bytes): 
+def decode(bytes):
   try: text = bytes.decode('utf-8')
-  except UnicodeDecodeError: 
+  except UnicodeDecodeError:
     try: text = bytes.decode('iso-8859-1')
-    except UnicodeDecodeError: 
+    except UnicodeDecodeError:
       text = bytes.decode('cp1252')
   return text
 
@@ -22,91 +22,91 @@ class IRCBot(irc.Client):
     irc.Client.__init__(self, *args)
     self.config = config
     self.setup()
-  
+
   def setup(self):
     self.modules = {}
-    
+
     home = os.getcwd()
-    
+
     # Load core modules first
     filenames = []
-    for fn in os.listdir(os.path.join(home, 'core')): 
+    for fn in os.listdir(os.path.join(home, 'core')):
       if fn.endswith('.py') and not fn[:8] == '__init__':
         filenames.append(os.path.join(home, 'core', fn))
-    
+
     # Everything else
-    if not hasattr(self.config, 'enable'): 
-      for fn in os.listdir(os.path.join(home, 'modules')): 
-        if fn.endswith('.py') and not fn.startswith('_'): 
+    if not hasattr(self.config, 'enable'):
+      for fn in os.listdir(os.path.join(home, 'modules')):
+        if fn.endswith('.py') and not fn.startswith('_'):
           filenames.append(os.path.join(home, 'modules', fn))
-    else: 
-      for fn in self.config.enable: 
+    else:
+      for fn in self.config.enable:
         filenames.append(os.path.join(home, 'modules', fn + '.py'))
     excluded_modules = getattr(self.config, 'exclude', [])
     print repr(excluded_modules)
-    for filename in filenames: 
+    for filename in filenames:
       name = os.path.basename(filename)[:-3]
       if name in excluded_modules: continue
       try: module = imp.load_source(name, filename)
-      except Exception, e: 
+      except Exception, e:
         print >> sys.stderr, "Error loading %s: %s (in bot.py)" % (name, e)
-      else: 
-        if hasattr(module, 'setup'): 
+      else:
+        if hasattr(module, 'setup'):
           module.setup(self)
         self.register(name, vars(module))
-    
-    if self.modules: 
+
+    if self.modules:
       print >> sys.stderr, 'Registered modules:', ', '.join(self.modules.keys())
     else: print >> sys.stderr, "Warning: Couldn't find any modules"
-    
+
     self.bind_commands()
     self.runonce = {}
-  
-  def register(self, name, variables): 
+
+  def register(self, name, variables):
     self.modules[name] = {}
-    for key, obj in variables.iteritems(): 
-      if hasattr(obj, 'commands') or hasattr(obj, 'rule'): 
+    for key, obj in variables.iteritems():
+      if hasattr(obj, 'commands') or hasattr(obj, 'rule'):
         self.modules[name][key] = obj
 
-  def unregister(self, name): 
+  def unregister(self, name):
     del self.modules[name]
-  
+
   def bind_commands(self):
     self.doc = {}
     self.commands = {'high': {}, 'medium': {}, 'low': {}}
     print '\nRegistering commands...'
-    def bind(self, priority, regexp, func): 
+    def bind(self, priority, regexp, func):
       print priority, '\t', regexp.pattern.encode('utf-8'), '\t', func
       # register documentation
-      if not hasattr(func, 'name'): 
+      if not hasattr(func, 'name'):
         func.name = func.__name__
-      if func.__doc__: 
-        if hasattr(func, 'example'): 
+      if func.__doc__:
+        if hasattr(func, 'example'):
           example = func.example
           example = example.replace('$nickname', self.nick)
         else: example = None
         self.doc[func.name] = (func.__doc__, example)
       self.commands[priority].setdefault(regexp, []).append(func)
 
-    def sub(pattern, self=self): 
+    def sub(pattern, self=self):
       # These replacements have significant order
       pattern = pattern.replace('$nickname', re.escape(self.nick))
       return pattern.replace('$nick', r'%s[,:] +' % re.escape(self.nick))
 
     for module, variables in self.modules.iteritems():
-      for name, func in variables.iteritems(): 
+      for name, func in variables.iteritems():
         # print name, func
-        if not hasattr(func, 'priority'): 
+        if not hasattr(func, 'priority'):
           func.priority = 'medium'
 
-        if not hasattr(func, 'thread'): 
+        if not hasattr(func, 'thread'):
           func.thread = True
 
-        if not hasattr(func, 'event'): 
+        if not hasattr(func, 'event'):
           func.event = 'PRIVMSG'
         else: func.event = func.event.upper()
 
-        if hasattr(func, 'rule'): 
+        if hasattr(func, 'rule'):
           if isinstance(func.rule, str):
             pattern = sub(func.rule)
             regexp = re.compile(pattern)
@@ -148,36 +148,36 @@ class IRCBot(irc.Client):
                  regexp = re.compile(prefix + command)
                  bind(self, func.priority, regexp, func)
 
-        if hasattr(func, 'commands'): 
+        if hasattr(func, 'commands'):
           for command in func.commands:
             template = r'^%s(%s)(?: +(.*))?$'
             pattern = template % (self.config.prefix, command)
             regexp = re.compile(pattern)
             bind(self, func.priority, regexp, func)
-  
-  def context(self, origin, text): 
-    class ContextWrapper(object): 
-      def __init__(self, phenny): 
+
+  def context(self, origin, text):
+    class ContextWrapper(object):
+      def __init__(self, phenny):
         self.bot = phenny
       # For compatibility with phenny-style modules that rely on this
-      def __getattr__(self, attr): 
+      def __getattr__(self, attr):
         sender = origin.sender or text
-        if attr == 'reply': 
+        if attr == 'reply':
           if sender.startswith('#'):
-            return (lambda msg: 
+            return (lambda msg:
               self.bot.msg(sender, origin.nick + ': ' + msg))
           else:
-            return (lambda msg: 
+            return (lambda msg:
               self.bot.msg(origin.nick, msg))
-        elif attr == 'say': 
+        elif attr == 'say':
           return lambda msg: self.bot.msg(sender, msg)
         return getattr(self.bot, attr)
 
     return ContextWrapper(self)
 
-  def input(self, origin, text, bytes, match, event, args): 
-    class CommandInput(unicode): 
-      def __new__(cls, text, origin, bytes, match, event, args): 
+  def input(self, origin, text, bytes, match, event, args, findall):
+    class CommandInput(unicode):
+      def __new__(cls, text, origin, bytes, match, event, args, findall):
         s = unicode.__new__(cls, text)
         s.sender = origin.sender
         s.nick = origin.nick
@@ -186,7 +186,7 @@ class IRCBot(irc.Client):
         s.match = match
         s.group = match.group
         s.groups = match.groups
-        s.findall = match.findall
+        s.findall = findall
         s.args = args
         s.admin = origin.nick in self.config.adminnicks
         s.owner = origin.nick == self.config.owner
@@ -195,30 +195,30 @@ class IRCBot(irc.Client):
 
     return CommandInput(text, origin, bytes, match, event, args)
 
-  def call(self, func, origin, phenny, input): 
+  def call(self, func, origin, phenny, input):
     try: func(phenny, input)
-    except Exception, e: 
+    except Exception as e:
       self.error(origin)
 
-  def dispatch(self, origin, args): 
+  def dispatch(self, origin, args):
     bytes, event, args = args[0], args[1], args[2:]
     text = decode(bytes)
-    
-    for priority in ('high', 'medium', 'low'): 
+
+    for priority in ('high', 'medium', 'low'):
       items = self.commands[priority].items()
-      for regexp, funcs in items: 
-        for func in funcs: 
+      for regexp, funcs in items:
+        for func in funcs:
           if event != func.event: continue
           match = regexp.search(text)
           if match:
             context = self.context(origin, text)
-            input = self.input(origin, text, bytes, match, event, args)
+            input = self.input(origin, text, bytes, match, event, args, lambda: regexp.findall(text))
 
-            if func.thread: 
+            if func.thread:
               targs = (func, origin, context, input)
               t = threading.Thread(target=self.call, args=targs)
               t.start()
             else: self.call(func, origin, context, input)
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
    print __doc__
