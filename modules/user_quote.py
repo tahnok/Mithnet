@@ -17,7 +17,7 @@ def upgrade(self, cur_version):
         cur_version += 1
     else:
         return
-    save_quotes()
+    save_quotes(self)
 
 
 def setup(self):
@@ -42,8 +42,9 @@ def save_quotes(self):
 
 
 def log(phenny, input):
-    phenny.logs.append((input.nick.lower(), input.group(1).replace("\n", "").lstrip(" ")))
-    phenny.logs = phenny.logs[-MAX_LOGS:]
+    if MAX_LOGS is not None:
+        phenny.logs.append((input.nick.lower(), input.group(1).replace("\n", "").lstrip(" ")))
+        phenny.logs = phenny.logs[-MAX_LOGS:]
 log.rule = r"(.*)"
 
 
