@@ -288,7 +288,7 @@ karma_me.rule = r"%s|%s" % (s, d)
 def ayyyy(phenny, input):
     if input.nick.lower() == "orez":
         phenny.say("oh, " + str(input.findall()))
-ayyyy.rule = r"a"
+ayyyy.rule = r"(z)"
 
 def change_karma(phenny, target, sender, karma):
     phenny.karmas.setdefault(target, KarmaNode()).karma += karma
