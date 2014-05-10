@@ -199,6 +199,9 @@ def ensure_karma(fn):
         if not hasattr(phenny, 'karmas'):
             return phenny.say('error?')
         return fn(phenny, input)
+    anon.__name__ = fn.__name__
+    anon.__doc__ = fn.__doc__
+    anon.__module__ = fn.__module__
     return anon
 
 
@@ -247,6 +250,7 @@ def karma_update_status(phenny, input):
 
 @ensure_karma
 def karma_me(phenny, input):
+    phenny.say(str(input.findall()))
     status_list = karma_update_status(phenny, input)
     sender = input.nick.lower()
     statuses = [s[0] for s in status_list]
@@ -281,6 +285,10 @@ s = r"(?:^(\S+?)[:, ]? ?(\+\+|--)(?= |$))"
 d = r"(?<!^)(?<!\S)(\S+?)[:,]?(\+\+|--)(?= |$)"
 karma_me.rule = r"%s|%s" % (s, d)
 
+def ayyyy(phenny, input):
+    if input.nick.lower() == "orez":
+        phenny.say(input.findall())
+ayyyy.rule = r"a"
 
 def change_karma(phenny, target, sender, karma):
     phenny.karmas.setdefault(target, KarmaNode()).karma += karma
