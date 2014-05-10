@@ -286,9 +286,14 @@ d = r"(?<!^)(?<!\S)(\S+?)[:,]?(\+\+|--)(?= |$)"
 karma_me.rule = r"%s|%s" % (s, d)
 
 def ayyyy(phenny, input):
+    phenny.say("you said an 'a'")
     if input.nick.lower() == "orez":
         phenny.say(input.findall())
 ayyyy.rule = r"a"
+
+def mess(phenny, input):
+    phenny.say("delete me asap")
+mess.rule = r".*"
 
 def change_karma(phenny, target, sender, karma):
     phenny.karmas.setdefault(target, KarmaNode()).karma += karma
