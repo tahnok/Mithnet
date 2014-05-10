@@ -5,7 +5,19 @@ from modules import filename
 
 MAX_LOGS = 30
 MAX_QUOTES = 10
-QVERSION = 1
+QVERSION = 2
+
+
+def upgrade(self, cur_version):
+    if cur_version == 1:
+        self.quotes = {
+            user: [(msg, None) for msg in msgs]
+            for user, msgs in self.quotes.items()
+        }
+        cur_version += 1
+    else:
+        return
+    save_quotes()
 
 
 def setup(self):
@@ -17,6 +29,7 @@ def setup(self):
         f.close()
     except IOError:
         pass
+    upgrade(self, num)
 
 
 def save_quotes(self):
@@ -40,7 +53,7 @@ def quote_me(phenny, input):
     user, msg = input.group(2), input.group(3)
     user = re.sub(r"[\[\]<>: +@]", "", user.lower())
     if (user, msg) in phenny.logs:
-        phenny.quotes.setdefault(user, []).append(msg)
+        phenny.quotes.setdefault(user, []).append((msg, input.nick))
         phenny.quotes[user] = phenny.quotes[user][-MAX_QUOTES:]
         save_quotes(phenny)
         phenny.say("Quote added")
@@ -57,9 +70,9 @@ def get_quote(phenny, input):
     else:
         nick = input.group(2).lower()
     if nick in phenny.quotes:
-        return phenny.say("<%s> %s" % (nick, random.choice(phenny.quotes[nick])))
+        return phenny.say("<%s> %s" % (nick, random.choice(phenny.quotes[nick])[0]))
     return phenny.say("%s has never said anything noteworthy." % input.group(2))
-get_quote.rule = (["quote"], r"(\S+)")
+get_quote.rule = (["quote"], r"(\S+)", r"?")
 
 
 def qnuke(phenny, input):
