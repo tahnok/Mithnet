@@ -136,7 +136,7 @@ class IRCBot(irc.Client):
               prefix = sub(prefix)
               for command in commands:
                 command = r'(%s) +' % command
-                regexp = re.compile(''.join(r"^", prefix, command, pattern))
+                regexp = re.compile(''.join((r"^", prefix, command, pattern)))
                 bind(self, func.priority, regexp, func)
 
             # 4) e.g. (['p', 'q'], '(.*)', '?')
