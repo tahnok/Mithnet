@@ -126,8 +126,8 @@ class IRCBot(irc.Client):
               prefix = self.config.prefix
               commands, pattern = func.rule
               for command in commands:
-                 command = r'^(%s) +%s' % (command, pattern)
-                 regexp = re.compile(prefix + command)
+                 command = r'(%s) +%s' % (command, pattern)
+                 regexp = re.compile(r"^" + prefix + command)
                  bind(self, func.priority, regexp, func)
 
             # 3) e.g. ('$nick', ['p', 'q'], '(.*)')
@@ -135,8 +135,8 @@ class IRCBot(irc.Client):
               prefix, commands, pattern = func.rule
               prefix = sub(prefix)
               for command in commands:
-                command = r'^(%s) +' % command
-                regexp = re.compile(prefix + command + pattern)
+                command = r'(%s) +' % command
+                regexp = re.compile(''.join(r"^", prefix, command, pattern))
                 bind(self, func.priority, regexp, func)
 
             # 4) e.g. (['p', 'q'], '(.*)', '?')
@@ -144,8 +144,8 @@ class IRCBot(irc.Client):
               prefix = self.config.prefix
               commands, pattern, ending = func.rule
               for command in commands:
-                 command = r'^(%s)(?: +%s)%s' % (command, pattern, ending)
-                 regexp = re.compile(prefix + command)
+                 command = r'(%s)(?: +%s)%s' % (command, pattern, ending)
+                 regexp = re.compile(r"^" + prefix + command)
                  bind(self, func.priority, regexp, func)
 
         if hasattr(func, 'commands'):
