@@ -118,7 +118,7 @@ class IRCBot(irc.Client):
             if types == [str, str]:
               prefix, pattern = func.rule
               prefix = sub(prefix)
-              regexp = re.compile(prefix + pattern)
+              regexp = re.compile(r"^" + prefix + pattern)
               bind(self, func.priority, regexp, func)
 
             # 2) e.g. (['p', 'q'], '(.*)')
@@ -126,7 +126,7 @@ class IRCBot(irc.Client):
               prefix = self.config.prefix
               commands, pattern = func.rule
               for command in commands:
-                 command = r'(%s) +%s' % (command, pattern)
+                 command = r'^(%s) +%s' % (command, pattern)
                  regexp = re.compile(prefix + command)
                  bind(self, func.priority, regexp, func)
 
@@ -135,7 +135,7 @@ class IRCBot(irc.Client):
               prefix, commands, pattern = func.rule
               prefix = sub(prefix)
               for command in commands:
-                command = r'(%s) +' % command
+                command = r'^(%s) +' % command
                 regexp = re.compile(prefix + command + pattern)
                 bind(self, func.priority, regexp, func)
 
@@ -144,7 +144,7 @@ class IRCBot(irc.Client):
               prefix = self.config.prefix
               commands, pattern, ending = func.rule
               for command in commands:
-                 command = r'(%s)(?: +%s)%s' % (command, pattern, ending)
+                 command = r'^(%s)(?: +%s)%s' % (command, pattern, ending)
                  regexp = re.compile(prefix + command)
                  bind(self, func.priority, regexp, func)
 
@@ -186,6 +186,7 @@ class IRCBot(irc.Client):
         s.match = match
         s.group = match.group
         s.groups = match.groups
+        s.findall = match.findall
         s.args = args
         s.admin = origin.nick in self.config.adminnicks
         s.owner = origin.nick == self.config.owner
@@ -208,7 +209,7 @@ class IRCBot(irc.Client):
       for regexp, funcs in items: 
         for func in funcs: 
           if event != func.event: continue
-          match = regexp.match(text)
+          match = regexp.search(text)
           if match:
             context = self.context(origin, text)
             input = self.input(origin, text, bytes, match, event, args)
