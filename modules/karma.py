@@ -212,6 +212,7 @@ def karma_update_status(phenny, input):
     if sender in phenny.alias_list:
         sender_nicks.add(phenny.alias_list[sender])
     now = time.time()
+    phenny.say(str(input.findall()))
     for nick1, kdiff1, nick2, kdiff2 in input.findall():
         target, kdiff = (nick1, kdiff1) if nick1 else (nick2, kdiff2)
         target = target.lower()
