@@ -193,7 +193,7 @@ class IRCBot(irc.Client):
         s.user = origin.user
         return s
 
-    return CommandInput(text, origin, bytes, match, event, args)
+    return CommandInput(text, origin, bytes, match, event, args, findall)
 
   def call(self, func, origin, phenny, input):
     try: func(phenny, input)
