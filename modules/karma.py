@@ -215,7 +215,6 @@ def karma_update_status(phenny, input):
     if sender in phenny.alias_list:
         sender_nicks.add(phenny.alias_list[sender])
     now = time.time()
-    phenny.say(str(input.findall()))
     for nick1, kdiff1, nick2, kdiff2 in input.findall():
         target, kdiff = (nick1, kdiff1) if nick1 else (nick2, kdiff2)
         target = target.lower()
@@ -252,7 +251,6 @@ def karma_update_status(phenny, input):
 
 @ensure_karma
 def karma_me(phenny, input):
-    phenny.say(str(input.findall()))
     status_list = karma_update_status(phenny, input)
     sender = input.nick.lower()
     statuses = [s[0] for s in status_list]
@@ -278,7 +276,7 @@ def karma_me(phenny, input):
         spoke = True
     if spoke:
         return
-    if update_status.UNSEEN in statuses:
+    if [x for x in status_list if update_status.UNSEEN == x[0] and len(x[1]) > 1]:
         return phenny.notice(input.nick, "I'm sorry. I'm afraid I do not know who that is.")
     if update_status.CHEATER in statuses:
         return phenny.say("I'm sorry, "+input.nick+". I'm afraid I can't do that.")
