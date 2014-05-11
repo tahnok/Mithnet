@@ -212,7 +212,8 @@ class IRCBot(irc.Client):
           match = regexp.search(text)
           if match:
             context = self.context(origin, text)
-            input = self.input(origin, text, bytes, match, event, args, lambda: regexp.findall(text))
+            input = self.input(origin, text, bytes, match, event, args,
+              (lambda (r, t): lambda: r.findall(t))(regexp, text))
 
             if func.thread:
               targs = (func, origin, context, input)

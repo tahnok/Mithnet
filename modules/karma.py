@@ -12,12 +12,18 @@ from modules import filename
 SHOW_TOP_DEFAULT = 6
 KVERSION = "0.1.6"
 
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
+
 REMOVE_LINK = -1
 OFFER_MERGE = 0
 OFFER_VERIFIED = 1
 SET_PRIMARY = 2
 CHECK_LINK_CHANGED = 3
 CHECK_LINK_CHANGER = 4
+
+update_status = enum('OK', 'BEAKABLE', 'CHEATER', 'FOOLABLE', 'UNSEEN')
 
 class KarmaNode(object):
     def __init__(self):
@@ -174,6 +180,7 @@ def setup(self):
     klist = list(self.karmas)
     self.fools_dict = dict(zip(klist, klist[1:] + [klist[0]]))
 
+
 def save_karma(self):
     if self.fooled and not is_fools():
         for nick, node in self.karmas.items():
@@ -186,56 +193,106 @@ def save_karma(self):
     except IOError:
         pass
 
-def karma_me(phenny, input):
-    target = input.group(1).lower()
-    karma = (input.group(2) == "++") * 2 - 1
-    sender = input.nick.lower()
-    if not hasattr(phenny, 'karmas'):
-        return phenny.say('error?')
 
-    target_nicks = set([target])
+def ensure_karma(fn):
+    def anon(phenny, input):
+        if not hasattr(phenny, 'karmas'):
+            return phenny.say('error?')
+        return fn(phenny, input)
+    anon.__name__ = fn.__name__
+    anon.__doc__ = fn.__doc__
+    anon.__module__ = fn.__module__
+    return anon
+
+
+@ensure_karma
+def karma_update_status(phenny, input):
+    karma_updates = []
+
+    sender = input.nick.lower()
+
     sender_nicks = set([sender])
-    if target in phenny.alias_list:
-        target_nicks.add(phenny.alias_list[target])
     if sender in phenny.alias_list:
         sender_nicks.add(phenny.alias_list[sender])
     now = time.time()
-    for s in sender_nicks:
-        s = phenny.karmas.get(s, KarmaNode())
-        for t in target_nicks:  # target and sender must be disjoint
-            if phenny.karmas.get(t, KarmaNode()).is_alias(s):
-                if hasattr(s, "last_beak") and s.last_beak + 60 > now:
-                    return phenny.say("lol sick beak")
-                if is_fools():
-                    return report_karma_update(phenny, input.nick)
-                return phenny.say("I'm sorry, "+input.nick+". I'm afraid I can't do that.")
+    phenny.say(str(input.findall()))
+    for nick1, kdiff1, nick2, kdiff2 in input.findall():
+        target, kdiff = (nick1, kdiff1) if nick1 else (nick2, kdiff2)
+        target = target.lower()
+        kdiff = 1 if kdiff == "++" else -1
+        target_nicks = set([target])
+        if target in phenny.alias_list:
+            target_nicks.add(phenny.alias_list[target])
+        seen = False
+        isfools = is_fools()
+        for t in target_nicks:
+            tk = phenny.karmas.get(t, KarmaNode())
+            for s in sender_nicks:
+                sk = phenny.karmas.get(s, KarmaNode())
+                if tk.is_alias(sk):  # target and sender must be disjoint
+                    status = None
+                    if hasattr(sk, "last_beak") and sk.last_beak + 60 > now:
+                        status = status or update_status.BEAKABLE
+                    if isfools:
+                        status = status or update_status.FOOLABLE
+                    status = status or update_status.CHEATER
+                    karma_updates.append((status, target, kdiff))
+                    break
+            else:
+                continue
+            break
+        else:
+            status = update_status.OK if seen else update_status.UNSEEN
+            karma_updates.append((status, target, kdiff))
 
-    for t in target_nicks:
-        if t in phenny.seen:  # i at least know who you're talking about.
-            # send_out = []
-            # if target not in phenny.karmas:
-            #     alias_tentative[target] = [CHECK_LINK_CHANGED, input.sender, sender, karma]
-            #     send_out.append(target)
-            # elif sender not in phenny.karmas:
-            #     alias_tentative[sender] = [CHECK_LINK_CHANGER, input.sender, target, karma]
-            #     send_out.append(sender)
-            # else:
-            #     change_karma(phenny, target, sender, karma)
+    return karma_updates
 
-            # for o in send_out:
-            #     phenny.msg("nickserv", "info " + o)
-            change_karma(phenny, target, sender, karma)
-            return True
-    phenny.notice(input.nick, "I'm sorry. I'm afraid I do not know who that is.")
-karma_me.rule = r'(\S+?)[ :,]{0,2}(\+\+|--)\s*$'
+
+@ensure_karma
+def karma_me(phenny, input):
+    phenny.say(str(input.findall()))
+    status_list = karma_update_status(phenny, input)
+    sender = input.nick.lower()
+    statuses = [s[0] for s in status_list]
+    spoke = False
+    def compress(status_list, status):
+        updates = {}
+        for s, t, d in status_list:
+            if s == status:
+                updates.setdefault(t, 0)
+                updates[t] += d
+        return updates.items()
+    if update_status.BEAKABLE in statuses:
+        phenny.say("lol sick beak")
+        spoke = True
+    # OK
+    for user, karma in compress(status_list, update_status.OK):
+        if karma:
+            change_karma(phenny, user, sender, karma)
+            spoke = True
+    # FOOLS
+    for user, karma in compress(status_list, update_status.FOOLABLE):
+        report_karma_update(phenny, user)
+        spoke = True
+    if spoke:
+        return
+    if update_status.UNSEEN in statuses:
+        return phenny.notice(input.nick, "I'm sorry. I'm afraid I do not know who that is.")
+    if update_status.CHEATER in statuses:
+        return phenny.say("I'm sorry, "+input.nick+". I'm afraid I can't do that.")
+    return phenny.say("You're a goddamn riot, you know that?")
+s = r"(?:^(\S+?)[:, ]? ?(\+\+|--)(?= |$))"
+d = r"(?<!^)(?<!\S)(\S+?)[:,]?(\+\+|--)(?= |$)"
+karma_me.rule = r"%s|%s" % (s, d)
+
 
 def change_karma(phenny, target, sender, karma):
     phenny.karmas.setdefault(target, KarmaNode()).karma += karma
     phenny.karmas.setdefault(sender, KarmaNode())
-    if karma == -1:
-        phenny.karmas[sender].contrib_minus += 1
+    if karma < 0:
+        phenny.karmas[sender].contrib_minus -= karma
     else:
-        phenny.karmas[sender].contrib_plus += 1
+        phenny.karmas[sender].contrib_plus += karma
     report_karma_update(phenny, target)
     save_karma(phenny)
 
@@ -266,13 +323,6 @@ def change_karma(phenny, target, sender, karma):
 # verify_nickserv_alias.rule = r"Information on (\w+) \(account (\w+)\):"
 # verify_nickserv_alias.priority = "low"
 # verify_nickserv_alias.thread = False
-
-def ensure_karma(fn):
-    def anon(phenny, input):
-        if not hasattr(phenny, 'karmas'):
-            return phenny.say('error?')
-        return fn(phenny, input)
-    return anon
 
 @ensure_karma
 def _tell_top_x_karma(phenny, show_top):
