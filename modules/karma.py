@@ -226,6 +226,8 @@ def karma_update_status(phenny, input):
         seen = False
         isfools = is_fools()
         for t in target_nicks:
+            if t in phenny.seen:
+                seen = True
             tk = phenny.karmas.get(t, KarmaNode())
             for s in sender_nicks:
                 sk = phenny.karmas.get(s, KarmaNode())
