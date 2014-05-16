@@ -54,6 +54,10 @@ def quote_me(phenny, input):
     user, msg = input.group(2), input.group(3)
     user = re.sub(r"[\[\]<>: +@]", "", user.lower())
     if (user, msg) in phenny.logs:
+        try:
+            phenny.logs.remove((user, msg))
+        except ValueError:  # well it's gone now anyway (threads amirite)
+            pass
         phenny.quotes.setdefault(user, []).append((msg, input.nick))
         phenny.quotes[user] = phenny.quotes[user][-MAX_QUOTES:]
         save_quotes(phenny)

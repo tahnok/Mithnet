@@ -281,8 +281,8 @@ def karma_me(phenny, input):
     if update_status.CHEATER in statuses:
         return phenny.say("I'm sorry, "+input.nick+". I'm afraid I can't do that.")
     return phenny.say("You're a goddamn riot, you know that?")
-s = r"(?:^(\S+?)[:, ]? ?(\+\+|--)(?= |$))"
-d = r"(?<!^)(?<!\S)(\S+?)[:,]?(\+\+|--)(?= |$)"
+s = r"(?:^([A-Za-z]\S+?)[:, ]? ?(\+\+|--)(?= |$))"
+d = r"(?<!^)(?<!\S)([A-Za-z]\S+?)[:,]?(\+\+|--)(?= |$)"
 karma_me.rule = r"%s|%s" % (s, d)
 
 
