@@ -94,7 +94,7 @@ def get_quotes(phenny, input):
         return phenny.say(response.geturl())
     else
         return phenny.say("no quotes were found")
-get_quotes.rule(["quotes"], r"(\S+)", r"?")
+get_quotes.rule = (["quotes"], r"(\S+)", r"?")
 
 def qnuke(phenny, input):
     if input.group(2) is None:
