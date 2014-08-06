@@ -1,10 +1,12 @@
 import pickle
 import random
 import re
+import urllib
+import urllib2
 from modules import filename
 
 MAX_LOGS = 30
-MAX_QUOTES = 10
+MAX_QUOTES = 100
 QVERSION = 2
 
 
@@ -79,6 +81,20 @@ def get_quote(phenny, input):
     return phenny.say("%s has never said anything noteworthy." % input.group(2))
 get_quote.rule = (["quote"], r"(\S+)", r"?")
 
+def get_quotes(phenny, input):
+    if input.group(2) is None:
+        quotes_string = "\n".join(["<%s> %s" % (nick, quote) for quote in quotes for nick,quotes in phenny.quotes.items()])
+    else:
+        nick = input.group(2).lower()
+        quotes_string = "\n".join(["<%s> %s" % (nick, quote) for quote in phenny.quotes[nick]])
+    if quotes_string:
+        data = urllib.urlencode({"content": quotes_string})
+        request = urllib2.Request("http://dpaste.com/api/v2",data)
+        response = urllib2.urlopen(request)
+        return phenny.say(response.geturl())
+    else
+        return phenny.say("no quotes were found")
+get_quotes.rule(["quotes"], r"(\S+)", r"?")
 
 def qnuke(phenny, input):
     if input.group(2) is None:
