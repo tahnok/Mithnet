@@ -92,7 +92,7 @@ def get_quotes(phenny, input):
         request = urllib2.Request("http://dpaste.com/api/v2",data)
         response = urllib2.urlopen(request)
         return phenny.say(response.geturl())
-    else
+    else:
         return phenny.say("no quotes were found")
 get_quotes.rule = (["quotes"], r"(\S+)", r"?")
 
