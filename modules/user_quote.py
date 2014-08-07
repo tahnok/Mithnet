@@ -86,14 +86,14 @@ def get_quotes(phenny, input):
         quotes_string = "\n".join(["<%s> %s" % (nick, quote) for nick, quotes in phenny.quotes.items() for quote, submitter in quotes])
     else:
         nick = input.group(2).lower()
-        quotes_string = "\n".join(["<%s> %s" % (nick, quote) for quote, submitter in phenny.quotes[nick]])
+        quotes_string = "\n".join(["<%s> %s" % (nick, quote) for quote, submitter in phenny.quotes.get(nick, [])])
     if quotes_string:
         data = urllib.urlencode({"content": quotes_string})
         request = urllib2.Request("http://dpaste.com/api/v2",data)
         response = urllib2.urlopen(request)
         return phenny.say(response.geturl())
     else:
-        return phenny.say("no quotes were found")
+        return phenny.say("No quotes were found.")
 get_quotes.rule = (["quotes"], r"(\S+)", r"?$")
 
 def qnuke(phenny, input):
