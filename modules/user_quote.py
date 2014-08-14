@@ -77,20 +77,16 @@ def get_quote(phenny, input):
     else:
         nick = input.group(2).lower()
     if nick in phenny.quotes:
-        return phenny.say("<%s> %s" % (nick, random.choice(phenny.quotes[nick])[0]))
+        return phenny.say("<{}> {}".format(nick, random.choice(phenny.quotes[nick])[0]))
     return phenny.say("%s has never said anything noteworthy." % input.group(2))
 get_quote.rule = (["quote"], r"(\S+)", r"?$")
 
 def get_quotes(phenny, input):
     if input.group(2) is None:
-        quotes = [(nick, quote) for nick, quotes in phenny.quotes.items() for quote, submitter in quotes]
-        quotes = [u"<{}> {}".format(*q) for q in quotes]
-        quotes_string = u"\n".join(quotes)
+        quotes_string = u"\n".join(u"<{}> {}".format(nick, quote) for nick, quotes in phenny.quotes.items() for quote, submitter in quotes)
     else:
         nick = input.group(2).lower()
-        quotes = [(nick, quote) for quote, submitter in phenny.quotes.get(nick, [])]
-        quotes = [u"<{}> {}".format(*q) for q in quotes]
-        quotes_string = u"\n".join(quotes)
+        quotes_string = u"\n".join(u"<{}> {}".format(nick, quote) for quote, submitter in phenny.quotes.get(nick, []))
     if quotes_string:
         data = urllib.urlencode({"content": quotes_string.encode("utf-8")})
         request = urllib2.Request("http://dpaste.com/api/v2",data)
