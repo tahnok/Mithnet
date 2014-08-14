@@ -92,7 +92,7 @@ def get_quotes(phenny, input):
         quotes = [u"<{}> {}".format(*q) for q in quotes]
         quotes_string = u"\n".join(quotes)
     if quotes_string:
-        data = urllib.urlencode({"content": quotes_string})
+        data = urllib.urlencode({"content": quotes_string.encode("utf-8")})
         request = urllib2.Request("http://dpaste.com/api/v2",data)
         response = urllib2.urlopen(request)
         return phenny.say(response.geturl())
