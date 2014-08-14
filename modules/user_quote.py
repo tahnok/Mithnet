@@ -83,12 +83,12 @@ get_quote.rule = (["quote"], r"(\S+)", r"?$")
 
 def get_quotes(phenny, input):
     if input.group(2) is None:
-        quotes = [(nick, quote.encode('utf-8', 'replace')) for nick, quotes in phenny.quotes.items() for quote, submitter in quotes]
+        quotes = [(nick, quote) for nick, quotes in phenny.quotes.items() for quote, submitter in quotes]
         quotes = [u"<{}> {}".format(*q) for q in quotes]
         quotes_string = u"\n".join(quotes)
     else:
         nick = input.group(2).lower()
-        quotes = [(nick, quote.encode('utf-8', 'replace')) for quote, submitter in phenny.quotes.get(nick, [])]
+        quotes = [(nick, quote) for quote, submitter in phenny.quotes.get(nick, [])]
         quotes = [u"<{}> {}".format(*q) for q in quotes]
         quotes_string = u"\n".join(quotes)
     if quotes_string:
