@@ -83,10 +83,10 @@ get_quote.rule = (["quote"], r"(\S+)", r"?$")
 
 def get_quotes(phenny, input):
     if input.group(2) is None:
-        quotes_string = "\n".join(["<{}> {}".format(nick, quote.decode("utf-8")) for nick, quotes in phenny.quotes.items() for quote, submitter in quotes])
+        quotes_string = "\n".join([u"<{}> {}".format(nick, quote.decode("utf-8")) for nick, quotes in phenny.quotes.items() for quote, submitter in quotes])
     else:
         nick = input.group(2).lower()
-        quotes_string = "\n".join(["<{}> {}".format(nick, quote.decode("utf-8")) for quote, submitter in phenny.quotes.get(nick, [])])
+        quotes_string = "\n".join([u"<{}> {}".format(nick, quote.decode("utf-8")) for quote, submitter in phenny.quotes.get(nick, [])])
     if quotes_string:
         data = urllib.urlencode({"content": quotes_string})
         request = urllib2.Request("http://dpaste.com/api/v2",data)
