@@ -79,7 +79,7 @@ def get_quote(phenny, input):
     if nick in phenny.quotes:
         return phenny.say("<{}> {}".format(nick, random.choice(phenny.quotes[nick])[0]))
     return phenny.say("%s has never said anything noteworthy." % input.group(2))
-get_quote.rule = (["quote"], r"(\S+)", r"?$")
+get_quote.rule = (["quote"], r"(\S+)", r"? *$")
 
 def get_quotes(phenny, input):
     if input.group(2) is None:
@@ -94,7 +94,7 @@ def get_quotes(phenny, input):
         return phenny.say(response.geturl())
     else:
         return phenny.say("No quotes were found.")
-get_quotes.rule = (["quotes"], r"(\S+)", r"?$")
+get_quotes.rule = (["quotes"], r"(\S+)", r"? *$")
 
 def qnuke(phenny, input):
     if input.group(2) is None:
