@@ -77,7 +77,7 @@ def get_quote(phenny, input):
     else:
         nick = input.group(2).lower()
     if nick in phenny.quotes:
-        return phenny.say("<{}> {}".format(nick, random.choice(phenny.quotes[nick])[0]))
+        return phenny.say(u"<{}> {}".format(nick, random.choice(phenny.quotes[nick])[0]))
     return phenny.say("%s has never said anything noteworthy." % input.group(2))
 get_quote.rule = (["quote"], r"(\S+)", r"? *$")
 
@@ -93,7 +93,7 @@ def get_quotes(phenny, input):
             request = urllib2.Request("http://dpaste.com/api/v2",data)
             response = urllib2.urlopen(request)
         except urllib2.HTTPError as e:
-            return phenny.say("Could not create quotes file: error code {}, reason: {}".format(
+            return phenny.say(u"Could not create quotes file: error code {}, reason: {}".format(
                 e.code, e.reason))
         else:
             return phenny.say(response.geturl())
