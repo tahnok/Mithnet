@@ -88,10 +88,15 @@ def get_quotes(phenny, input):
         nick = input.group(2).lower()
         quotes_string = u"\n".join(u"<{}> {}".format(nick, quote) for quote, submitter in phenny.quotes.get(nick, []))
     if quotes_string:
-        data = urllib.urlencode({"content": quotes_string.encode("utf-8")})
-        request = urllib2.Request("http://dpaste.com/api/v2",data)
-        response = urllib2.urlopen(request)
-        return phenny.say(response.geturl())
+        try:
+            data = urllib.urlencode({"content": quotes_string.encode("utf-8")})
+            request = urllib2.Request("http://dpaste.com/api/v2",data)
+            response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+            return phenny.say("Could not create quotes file: error code {}, reason: {}".format(
+                e.code, e.reason))
+        else:
+            return phenny.say(response.geturl())
     else:
         return phenny.say("No quotes were found.")
 get_quotes.rule = (["quotes"], r"(\S+)", r"? *$")
