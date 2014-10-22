@@ -201,6 +201,8 @@ class IRCBot(irc.Client):
       self.error(origin)
 
   def dispatch(self, origin, args):
+    if origin.nick.lower() in ["shellby", "spacenet"]:  # hardXcode
+      return
     bytes, event, args = args[0], args[1], args[2:]
     text = decode(bytes)
 
