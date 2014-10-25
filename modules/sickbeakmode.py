@@ -1,4 +1,4 @@
-#!/usr/bin/env pythong
+#!/usr/bin/env python
 """
 sick beak mode - sick beaks for everyone
 """
@@ -10,6 +10,7 @@ def sickbeak_mode(phenny, input):
         phenny.say("sick beak")
 
 sickbeak_mode.priority = 'low'
+sickbeak_mode.rule = r"(.*)"
 
 def setup(self):
     self.sickbeak_mode = false
